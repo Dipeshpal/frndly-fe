@@ -35,3 +35,10 @@ export function useDeleteClipboardItem() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['clipboard'] }),
   });
 }
+
+export function useDeviceList() {
+  return useQuery({
+    queryKey: ['devices'],
+    queryFn: () => clipboardApi.devices(),
+  });
+}

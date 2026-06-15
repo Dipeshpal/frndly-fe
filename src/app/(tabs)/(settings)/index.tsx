@@ -4,12 +4,10 @@ import { useTheme } from '@/hooks/use-theme';
 import { useAuthStore } from '@/store/auth-store';
 import { useSettingsStore } from '@/store/settings-store';
 import { Avatar } from '@/components/ui/avatar';
-import { Card } from '@/components/ui/card';
 import { PreferenceRow } from '@/features/settings/components/preference-row';
+import { FadeIn } from '@/components/motion/fade-in';
 import { Spacing } from '@/theme/spacing';
 import { Typography } from '@/theme/typography';
-
-const APP_VERSION = '1.0.0';
 
 export default function SettingsScreen() {
   const { colors } = useTheme();
@@ -38,24 +36,20 @@ export default function SettingsScreen() {
       contentContainerStyle={{ gap: Spacing.lg, paddingBottom: Spacing.xxl }}
     >
       {/* Profile Card */}
-      <View style={{ paddingHorizontal: Spacing.md, paddingTop: Spacing.sm }}>
-        <Card>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
-            <Avatar name={user?.name ?? 'User'} size={52} />
-            <View style={{ flex: 1, gap: 2 }}>
-              <Text style={{ ...Typography.titleMd, color: colors.ink }} selectable>{user?.name ?? '—'}</Text>
-              <Text style={{ ...Typography.bodySm, color: colors.muted }} selectable>{user?.email ?? '—'}</Text>
-            </View>
+      <FadeIn index={0} style={{ paddingHorizontal: Spacing.md, paddingTop: Spacing.sm }}>
+        <View style={{ backgroundColor: colors.surfaceCard, borderRadius: 12, borderCurve: 'continuous', borderWidth: 1, borderColor: colors.border, padding: Spacing.md, flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
+          <Avatar name={user?.name ?? 'User'} size={52} />
+          <View style={{ flex: 1, gap: Spacing.xs }}>
+            <Text style={{ ...Typography.headlineLgMobile, color: colors.ink }} selectable>{user?.name ?? '—'}</Text>
+            <Text style={{ ...Typography.bodySm, color: colors.muted }} selectable>{user?.email ?? '—'}</Text>
           </View>
-        </Card>
-      </View>
+        </View>
+      </FadeIn>
 
       {/* Preferences */}
-      <View style={{ gap: Spacing.xs }}>
-        <Text style={{ ...Typography.captionUppercase, color: colors.muted, paddingHorizontal: Spacing.md, paddingBottom: Spacing.xxs }}>
-          PREFERENCES
-        </Text>
-        <Card style={{ marginHorizontal: Spacing.md, padding: 0, overflow: 'hidden' }}>
+      <FadeIn index={1} style={{ gap: Spacing.sm }}>
+        <Text style={{ ...Typography.labelCaps, color: colors.muted, paddingHorizontal: Spacing.md, textTransform: 'uppercase' }}>Preferences</Text>
+        <View style={{ marginHorizontal: Spacing.md, backgroundColor: colors.surfaceCard, borderRadius: 12, borderCurve: 'continuous', borderWidth: 1, borderColor: colors.border, overflow: 'hidden' }}>
           <PreferenceRow
             icon="moon.fill"
             iconColor={colors.brandLavender}
@@ -64,7 +58,7 @@ export default function SettingsScreen() {
             value={darkMode}
             onValueChange={setDarkMode}
           />
-          <View style={{ height: 1, backgroundColor: colors.hairlineSoft, marginLeft: Spacing.md }} />
+          <View style={{ height: 1, backgroundColor: colors.border }} />
           <PreferenceRow
             icon="bell.fill"
             iconColor={colors.brandOchre}
@@ -73,57 +67,23 @@ export default function SettingsScreen() {
             value={notifications}
             onValueChange={setNotifications}
           />
-          <View style={{ height: 1, backgroundColor: colors.hairlineSoft, marginLeft: Spacing.md }} />
+          <View style={{ height: 1, backgroundColor: colors.border }} />
           <PreferenceRow
             icon="arrow.triangle.2.circlepath"
             iconColor={colors.brandPink}
             label="Clipboard Auto Sync"
-            subtitle="Automatically sync clipboard on app open"
+            subtitle="Sync on app open"
             type="toggle"
             value={clipboardAutoSync}
             onValueChange={setClipboardAutoSync}
           />
-        </Card>
-      </View>
-
-      {/* Security */}
-      <View style={{ gap: Spacing.xs }}>
-        <Text style={{ ...Typography.captionUppercase, color: colors.muted, paddingHorizontal: Spacing.md, paddingBottom: Spacing.xxs }}>
-          SECURITY
-        </Text>
-        <Card style={{ marginHorizontal: Spacing.md, padding: 0, overflow: 'hidden' }}>
-          <PreferenceRow
-            icon="lock.fill"
-            iconColor={colors.brandTeal}
-            label="Change Password"
-            onPress={() => {}}
-          />
-        </Card>
-      </View>
-
-      {/* App Info */}
-      <View style={{ gap: Spacing.xs }}>
-        <Text style={{ ...Typography.captionUppercase, color: colors.muted, paddingHorizontal: Spacing.md, paddingBottom: Spacing.xxs }}>
-          APP
-        </Text>
-        <Card style={{ marginHorizontal: Spacing.md, padding: 0, overflow: 'hidden' }}>
-          <PreferenceRow icon="doc.text" iconColor={colors.muted} label="Terms of Service" onPress={() => {}} />
-          <View style={{ height: 1, backgroundColor: colors.hairlineSoft, marginLeft: Spacing.md }} />
-          <PreferenceRow icon="hand.raised.fill" iconColor={colors.muted} label="Privacy Policy" onPress={() => {}} />
-          <View style={{ height: 1, backgroundColor: colors.hairlineSoft, marginLeft: Spacing.md }} />
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm }}>
-            <Text style={{ ...Typography.bodyMd, color: colors.muted, flex: 1 }}>Version</Text>
-            <Text style={{ ...Typography.bodySm, color: colors.mutedSoft }}>{APP_VERSION}</Text>
-          </View>
-        </Card>
-      </View>
+        </View>
+      </FadeIn>
 
       {/* Account */}
-      <View style={{ gap: Spacing.xs }}>
-        <Text style={{ ...Typography.captionUppercase, color: colors.muted, paddingHorizontal: Spacing.md, paddingBottom: Spacing.xxs }}>
-          ACCOUNT
-        </Text>
-        <Card style={{ marginHorizontal: Spacing.md, padding: 0, overflow: 'hidden' }}>
+      <FadeIn index={2} style={{ gap: Spacing.sm }}>
+        <Text style={{ ...Typography.labelCaps, color: colors.muted, paddingHorizontal: Spacing.md, textTransform: 'uppercase' }}>Account</Text>
+        <View style={{ marginHorizontal: Spacing.md, backgroundColor: colors.surfaceCard, borderRadius: 12, borderCurve: 'continuous', borderWidth: 1, borderColor: colors.border, overflow: 'hidden' }}>
           <PreferenceRow
             icon="rectangle.portrait.and.arrow.right"
             iconColor={colors.error}
@@ -131,8 +91,8 @@ export default function SettingsScreen() {
             type="destructive"
             onPress={handleLogout}
           />
-        </Card>
-      </View>
+        </View>
+      </FadeIn>
     </ScrollView>
   );
 }

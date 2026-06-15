@@ -10,4 +10,7 @@ export const clipboardApi = {
 
   delete: (id: string) =>
     apiClient.delete(`/clipboard/${id}`).then((r) => r.data),
+
+  devices: () =>
+    apiClient.get<import('@/types/clipboard.types').Device[]>('/clipboard/devices').then((r) => r.data),
 };

@@ -1,9 +1,8 @@
-import { View, Text, Pressable } from 'react-native';
+import { Text, Pressable, View, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { useTheme } from '@/hooks/use-theme';
-import { Radius, Spacing } from '@/theme/spacing';
+import { Spacing } from '@/theme/spacing';
 import { Typography } from '@/theme/typography';
-import { Shadows } from '@/theme/shadows';
 
 interface SummaryCardProps {
   title: string;
@@ -11,36 +10,53 @@ interface SummaryCardProps {
   icon: string;
   color: string;
   onPress?: () => void;
+  statusLabel?: string;
+  statusColor?: string;
 }
 
-export function SummaryCard({ title, value, icon, color, onPress }: SummaryCardProps) {
+export function SummaryCard({ title, value, icon, color, onPress, statusLabel, statusColor }: SummaryCardProps) {
   const { colors } = useTheme();
+  const isWeb = Platform.OS === 'web';
 
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => ({
+      style={({ pressed, hovered }: any) => ({
         flex: 1,
-        backgroundColor: colors.canvas,
-        borderRadius: Radius.lg,
+        minWidth: 150,
+        backgroundColor: colors.surfaceCard,
+        borderRadius: 12,
         borderCurve: 'continuous',
-        padding: Spacing.md,
-        gap: Spacing.sm,
         borderWidth: 1,
-        borderColor: colors.hairline,
-        boxShadow: Shadows.soft,
+        borderColor: hovered ? color : colors.border,
+        padding: Spacing.md,
+        overflow: 'hidden',
         opacity: pressed ? 0.85 : 1,
       })}
       accessibilityRole="button"
       accessibilityLabel={`${title}: ${value}`}
     >
-      <View style={{ width: 36, height: 36, borderRadius: 10, borderCurve: 'continuous', backgroundColor: `${color}18`, alignItems: 'center', justifyContent: 'center' }}>
-        <Image source={`sf:${icon}`} style={{ width: 18, height: 18, tintColor: color }} contentFit="contain" />
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.sm }}>
+        <View style={{ padding: 8, backgroundColor: `${color}1A`, borderRadius: 8 }}>
+          {!isWeb ? (
+            <Image source={`sf:${icon}`} style={{ width: 20, height: 20, tintColor: color }} contentFit="contain" />
+          ) : (
+            <Text style={{ fontSize: 20 }}>{icon}</Text>
+          )}
+        </View>
+        {statusLabel && (
+          <Text style={{ fontSize: 12, color: statusColor || colors.muted, fontWeight: '500' }}>{statusLabel}</Text>
+        )}
       </View>
-      <Text style={{ ...Typography.displaySm, color: colors.ink, fontVariant: ['tabular-nums'] }} selectable>
+      <Text style={{ ...Typography.labelCaps, color: colors.body, textTransform: 'uppercase' }}>{title}</Text>
+      <Text style={{ ...Typography.statNumber, color: colors.ink, marginTop: 4 }} selectable>
         {value}
       </Text>
-      <Text style={{ ...Typography.caption, color: colors.muted }}>{title}</Text>
+      
+      {/* Decorative bottom bar mimicking the design */}
+      <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 4, backgroundColor: `${color}33` }}>
+        <View style={{ height: '100%', backgroundColor: color, width: '60%' }} />
+      </View>
     </Pressable>
   );
 }

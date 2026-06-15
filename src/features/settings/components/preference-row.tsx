@@ -1,4 +1,4 @@
-import { View, Text, Switch, Pressable, ViewStyle } from 'react-native';
+import { View, Text, Switch, Pressable, ViewStyle, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/theme/spacing';
@@ -31,12 +31,25 @@ export function PreferenceRow({
 }: PreferenceRowProps) {
   const { colors } = useTheme();
   const textColor = type === 'destructive' ? colors.error : colors.ink;
+  const isWeb = Platform.OS === 'web';
+
+  const getEmoji = (iconName?: string) => {
+    if (iconName?.includes('moon')) return '🌙';
+    if (iconName?.includes('bell')) return '🔔';
+    if (iconName?.includes('arrow.triangle')) return '🔄';
+    if (iconName?.includes('rectangle.portrait')) return '🚪';
+    return '⚙️';
+  };
 
   const content = (
     <View style={[{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md }, style]}>
       {icon && (
         <View style={{ width: 32, height: 32, borderRadius: 8, borderCurve: 'continuous', backgroundColor: iconColor ? `${iconColor}18` : colors.surfaceCard, alignItems: 'center', justifyContent: 'center' }}>
-          <Image source={`sf:${icon}`} style={{ width: 15, height: 15, tintColor: iconColor ?? colors.muted }} contentFit="contain" />
+          {!isWeb ? (
+            <Image source={`sf:${icon}`} style={{ width: 15, height: 15, tintColor: iconColor ?? colors.muted }} contentFit="contain" />
+          ) : (
+            <Text style={{ fontSize: 16 }}>{getEmoji(icon)}</Text>
+          )}
         </View>
       )}
       <View style={{ flex: 1, gap: 2 }}>
@@ -55,7 +68,11 @@ export function PreferenceRow({
   if (type === 'toggle') return content;
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label}>
-      {content}
+      {({ pressed }) => (
+        <View style={{ opacity: pressed ? 0.7 : 1 }}>
+          {content}
+        </View>
+      )}
     </Pressable>
   );
 }

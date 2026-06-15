@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { View, Text, TextInput, FlatList, Pressable, Alert } from 'react-native';
+import { View, Text, TextInput, FlatList, Alert } from 'react-native';
 import { Image } from 'expo-image';
 import * as Clipboard from 'expo-clipboard';
 import { useTheme } from '@/hooks/use-theme';
@@ -9,9 +9,7 @@ import { SearchBar } from '@/components/ui/search-bar';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/feedback/empty-state';
 import { LoadingState } from '@/components/feedback/loading-state';
-import { SectionHeader } from '@/components/ui/section-header';
-import { Badge } from '@/components/ui/badge';
-import { Spacing, Radius } from '@/theme/spacing';
+import { Spacing } from '@/theme/spacing';
 import { Typography } from '@/theme/typography';
 
 const MOCK_DEVICES = [
@@ -25,6 +23,7 @@ export default function ClipboardScreen() {
   const { colors } = useTheme();
   const [search, setSearch] = useState('');
   const [inputText, setInputText] = useState('');
+  const isWeb = process.env.EXPO_OS === 'web';
 
   const { data, isLoading, refetch } = useClipboardList(search || undefined);
   const { push, loading: pushing } = usePushClipboard();
@@ -58,59 +57,60 @@ export default function ClipboardScreen() {
       contentContainerStyle={{ gap: Spacing.lg, paddingBottom: Spacing.xxl }}
       ListHeaderComponent={
         <View style={{ gap: Spacing.lg }}>
-          {/* Input Area */}
+          {/* Push Area */}
           <View style={{ gap: Spacing.sm, paddingHorizontal: Spacing.md, paddingTop: Spacing.sm }}>
-            <Text style={{ ...Typography.titleMd, color: colors.ink }}>Push to all devices</Text>
+            <Text style={{ ...Typography.headlineLgMobile, color: colors.ink }}>Push to devices</Text>
             <View style={{
-              backgroundColor: colors.canvas,
-              borderRadius: Radius.md,
+              backgroundColor: 'rgba(20,20,20,0.9)',
+              borderRadius: 12,
               borderCurve: 'continuous',
               borderWidth: 1,
-              borderColor: colors.hairline,
-              padding: Spacing.sm,
-              gap: Spacing.sm,
+              borderColor: '#262626',
+              padding: Spacing.md,
+              gap: Spacing.md,
             }}>
               <TextInput
                 value={inputText}
                 onChangeText={setInputText}
-                placeholder="Type or paste content to sync…"
-                placeholderTextColor={colors.mutedSoft}
+                placeholder="Type or paste to sync…"
+                placeholderTextColor={colors.muted}
                 multiline
                 numberOfLines={4}
-                style={{ ...Typography.bodyMd, color: colors.ink, minHeight: 80, textAlignVertical: 'top' }}
+                style={{ ...Typography.bodyLg, color: colors.ink, minHeight: 80, textAlignVertical: 'top' }}
                 accessibilityLabel="Clipboard input"
               />
-              <View style={{ flexDirection: 'row', gap: Spacing.xs, justifyContent: 'flex-end' }}>
-                <Button label="Paste" onPress={handlePaste} variant="secondary" size="sm" />
-                <Button label="Clear" onPress={() => setInputText('')} variant="ghost" size="sm" />
-                <Button label="Sync" onPress={handlePush} loading={pushing} size="sm" />
+              <View style={{ flexDirection: 'row', gap: Spacing.sm, justifyContent: 'flex-end' }}>
+                <Button label="Paste" onPress={handlePaste} variant="ghost" size="sm" />
+                <Button label="Push" onPress={handlePush} loading={pushing} size="sm" variant="blue" />
               </View>
             </View>
           </View>
 
           {/* Connected Devices */}
           <View style={{ gap: Spacing.sm }}>
-            <SectionHeader title="Connected Devices" />
-            <View style={{ gap: Spacing.xs, paddingHorizontal: Spacing.md }}>
+            <Text style={{ ...Typography.headlineLgMobile, color: colors.ink, paddingHorizontal: Spacing.md }}>Connected Devices</Text>
+            <View style={{ gap: Spacing.sm, paddingHorizontal: Spacing.md }}>
               {MOCK_DEVICES.map((device) => (
                 <View
                   key={device.id}
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    gap: Spacing.sm,
-                    backgroundColor: colors.canvas,
-                    borderRadius: Radius.md,
+                    gap: Spacing.md,
+                    backgroundColor: 'rgba(20,20,20,0.9)',
+                    borderRadius: 12,
                     borderCurve: 'continuous',
                     borderWidth: 1,
-                    borderColor: colors.hairline,
-                    padding: Spacing.sm,
+                    borderColor: '#262626',
+                    padding: Spacing.md,
                   }}
                 >
-                  <Image source={`sf:${device.icon}`} style={{ width: 20, height: 20, tintColor: device.online ? colors.brandPink : colors.mutedSoft }} contentFit="contain" />
-                  <Text style={{ ...Typography.bodyMd, color: colors.ink, flex: 1 }}>{device.name}</Text>
-                  <Badge label={device.online ? 'Online' : 'Offline'} variant={device.online ? 'success' : 'default'} />
-                  <Text style={{ ...Typography.caption, color: colors.mutedSoft }}>{device.lastSync}</Text>
+                  <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: device.online ? '#22c55e' : colors.muted }} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ ...Typography.bodyLg, color: colors.ink }}>{device.name}</Text>
+                    <Text style={{ ...Typography.bodySm, color: colors.muted }}>{device.lastSync}</Text>
+                  </View>
+                  {!isWeb && <Image source={`sf:${device.icon}`} style={{ width: 20, height: 20, tintColor: colors.muted }} contentFit="contain" />}
                 </View>
               ))}
             </View>
@@ -118,13 +118,15 @@ export default function ClipboardScreen() {
 
           {/* Search History */}
           <View style={{ gap: Spacing.sm }}>
-            <SectionHeader title="Clipboard History" action={{ label: 'Refresh', onPress: refetch }} />
-            <View style={{ paddingHorizontal: Spacing.md }}>
-              <SearchBar value={search} onChangeText={setSearch} placeholder="Search history…" />
-            </View>
-          </View>
+            <Text style={{ ...Typography.headlineLgMobile, color: colors.ink, paddingHorizontal: Spacing.md }}>Clipboard History</Text>
+            {!isWeb && (
+              <View style={{ paddingHorizontal: Spacing.md }}>
+                <SearchBar value={search} onChangeText={setSearch} placeholder="Search history…" />
+              </View>
+            )}
 
-          {isLoading && <LoadingState message="Loading clipboard history…" style={{ paddingVertical: Spacing.xl }} />}
+            {isLoading && <LoadingState message="Loading clipboard history…" style={{ paddingVertical: Spacing.xl }} />}
+          </View>
         </View>
       }
       renderItem={({ item }) => (

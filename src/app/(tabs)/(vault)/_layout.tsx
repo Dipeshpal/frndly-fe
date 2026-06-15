@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router/stack';
 import { useTheme } from '@/hooks/use-theme';
+import { HamburgerButton } from '@/components/nav/hamburger-button';
 
 export default function VaultStack() {
   const { colors } = useTheme();
@@ -7,6 +8,7 @@ export default function VaultStack() {
   return (
     <Stack
       screenOptions={{
+        headerShown: process.env.EXPO_OS !== 'web',
         headerLargeTitle: true,
         headerTransparent: true,
         headerShadowVisible: false,
@@ -14,7 +16,7 @@ export default function VaultStack() {
         contentStyle: { backgroundColor: colors.canvas },
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Vault' }} />
+      <Stack.Screen name="index" options={{ title: 'Vault', headerLeft: () => <HamburgerButton /> }} />
       <Stack.Screen
         name="add"
         options={{

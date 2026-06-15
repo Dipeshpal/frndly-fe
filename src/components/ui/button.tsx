@@ -1,9 +1,11 @@
-import { Pressable, Text, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
+import { Text, ViewStyle, TextStyle } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
+import { PressableScale } from '@/components/ui/pressable-scale';
+import { Spinner } from '@/components/ui/spinner';
 import { Radius, Spacing } from '@/theme/spacing';
 import { Typography } from '@/theme/typography';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'destructive';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'destructive' | 'blue' | 'outline';
 type Size = 'sm' | 'md' | 'lg';
 
 interface ButtonProps {
@@ -39,6 +41,8 @@ export function Button({
     secondary: colors.surfaceCard,
     ghost: 'transparent',
     destructive: '#ef4444',
+    blue: isDisabled ? colors.primaryDisabled : colors.brandBlue,
+    outline: 'transparent',
   };
 
   const textMap: Record<Variant, string> = {
@@ -46,6 +50,8 @@ export function Button({
     secondary: colors.ink,
     ghost: colors.ink,
     destructive: '#ffffff',
+    blue: '#ffffff',
+    outline: colors.ink,
   };
 
   const borderMap: Record<Variant, string | undefined> = {
@@ -53,6 +59,8 @@ export function Button({
     secondary: colors.hairline,
     ghost: undefined,
     destructive: undefined,
+    blue: undefined,
+    outline: colors.hairline,
   };
 
   const containerStyle: ViewStyle = {
@@ -80,18 +88,17 @@ export function Button({
   };
 
   return (
-    <Pressable
-      style={({ pressed }) => [containerStyle, { opacity: pressed && !isDisabled ? 0.8 : containerStyle.opacity }]}
+    <PressableScale
+      style={containerStyle}
       onPress={onPress}
       disabled={isDisabled}
-      accessibilityRole="button"
       accessibilityLabel={label}
     >
       {loading ? (
-        <ActivityIndicator size="small" color={textMap[variant]} />
+        <Spinner size={20} color={textMap[variant]} />
       ) : (
         <Text style={textStyle}>{label}</Text>
       )}
-    </Pressable>
+    </PressableScale>
   );
 }

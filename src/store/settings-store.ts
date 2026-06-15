@@ -10,7 +10,7 @@ interface SettingsState {
 }
 
 export const useSettingsStore = create<SettingsState>((set) => ({
-  darkMode: false,
+  darkMode: true,
   notifications: true,
   clipboardAutoSync: false,
   setDarkMode: (darkMode) => set({ darkMode }),

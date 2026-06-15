@@ -14,10 +14,10 @@ export function SectionHeader({ title, action, style }: SectionHeaderProps) {
 
   return (
     <View style={[{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.md }, style]}>
-      <Text style={{ ...Typography.captionUppercase, color: colors.muted }}>{title.toUpperCase()}</Text>
+      <Text style={{ ...Typography.titleLg, color: colors.ink }}>{title}</Text>
       {action && (
         <Pressable onPress={action.onPress} accessibilityRole="button">
-          <Text style={{ ...Typography.bodySm, color: colors.brandPink }}>{action.label}</Text>
+          <Text style={{ ...Typography.bodyMd, color: colors.brandBlue, fontWeight: '500' }}>{action.label} ›</Text>
         </Pressable>
       )}
     </View>

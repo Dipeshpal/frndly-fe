@@ -1,22 +1,11 @@
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, ScrollView, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
 import { useTheme } from '@/hooks/use-theme';
-import { Radius, Spacing } from '@/theme/spacing';
+import { Spacing } from '@/theme/spacing';
 import { Typography } from '@/theme/typography';
-import { Badge } from '@/components/ui/badge';
-import { CATEGORY_LABELS, type SecretCategory } from '@/types/vault.types';
-import { maskValue, formatDate } from '@/utils/format';
-import type { Secret } from '@/types/vault.types';
-
-const CATEGORY_ICONS: Record<SecretCategory, string> = {
-  api_key: 'key.fill',
-  database: 'cylinder.split.1x2.fill',
-  cloud: 'cloud.fill',
-  personal: 'person.fill',
-  other: 'doc.text.fill',
-};
+import { CATEGORY_LABELS, type SecretCategory, type Secret } from '@/types/vault.types';
 
 const CATEGORY_COLORS: Record<SecretCategory, string> = {
   api_key: '#ff4d8b',
@@ -35,6 +24,7 @@ interface SecretCardProps {
 export function SecretCard({ secret, onDelete, onEdit }: SecretCardProps) {
   const { colors } = useTheme();
   const [revealed, setRevealed] = useState(false);
+  const isWeb = Platform.OS === 'web';
   const color = CATEGORY_COLORS[secret.category];
 
   const handleCopy = async () => {
@@ -42,58 +32,70 @@ export function SecretCard({ secret, onDelete, onEdit }: SecretCardProps) {
   };
 
   return (
-    <View style={{
-      backgroundColor: colors.canvas,
-      borderRadius: Radius.lg,
-      borderCurve: 'continuous',
-      borderWidth: 1,
-      borderColor: colors.hairline,
-      padding: Spacing.md,
-      gap: Spacing.sm,
-    }}>
-      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
-        <View style={{ width: 36, height: 36, borderRadius: 10, borderCurve: 'continuous', backgroundColor: `${color}18`, alignItems: 'center', justifyContent: 'center' }}>
-          <Image source={`sf:${CATEGORY_ICONS[secret.category]}`} style={{ width: 16, height: 16, tintColor: color }} contentFit="contain" />
-        </View>
-        <View style={{ flex: 1, gap: 4 }}>
-          <Text style={{ ...Typography.titleSm, color: colors.ink }}>{secret.name}</Text>
-          <Badge label={CATEGORY_LABELS[secret.category]} />
-        </View>
-        <View style={{ flexDirection: 'row', gap: Spacing.xs }}>
-          <Pressable onPress={() => onEdit(secret)} style={{ padding: 4 }} accessibilityLabel="Edit secret">
-            <Image source="sf:pencil" style={{ width: 16, height: 16, tintColor: colors.muted }} contentFit="contain" />
-          </Pressable>
-          <Pressable onPress={() => onDelete(secret.id)} style={{ padding: 4 }} accessibilityLabel="Delete secret">
-            <Image source="sf:trash" style={{ width: 16, height: 16, tintColor: colors.error }} contentFit="contain" />
-          </Pressable>
-        </View>
-      </View>
-
-      <View style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: colors.surfaceCard,
-        borderRadius: Radius.sm,
+    <Pressable
+      style={({ hovered }: any) => ({
+        backgroundColor: hovered ? colors.surfaceSoft : colors.surfaceCard,
+        borderRadius: 12,
         borderCurve: 'continuous',
-        paddingHorizontal: Spacing.sm,
-        paddingVertical: Spacing.xs,
-        gap: Spacing.xs,
-      }}>
-        <Text style={{ ...Typography.bodySm, color: colors.body, fontFamily: 'monospace', flex: 1 }} selectable={revealed} numberOfLines={1}>
-          {revealed ? secret.value : maskValue(secret.value)}
-        </Text>
-        <Pressable onPress={() => setRevealed((v) => !v)} style={{ padding: 4 }} accessibilityLabel={revealed ? 'Hide value' : 'Reveal value'}>
-          <Image source={`sf:${revealed ? 'eye.slash' : 'eye'}`} style={{ width: 14, height: 14, tintColor: colors.muted }} contentFit="contain" />
-        </Pressable>
-        <Pressable onPress={handleCopy} style={{ padding: 4 }} accessibilityLabel="Copy value">
-          <Image source="sf:doc.on.doc" style={{ width: 14, height: 14, tintColor: colors.brandPink }} contentFit="contain" />
-        </Pressable>
+        borderWidth: 1,
+        borderColor: hovered ? color : colors.border,
+        borderLeftWidth: 4,
+        borderLeftColor: color,
+        padding: Spacing.md,
+        gap: Spacing.md,
+        transition: 'all 0.2s',
+      })}
+    >
+      {/* Header */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <View style={{ flex: 1, gap: Spacing.xs }}>
+          <Text style={{ ...Typography.headlineLgMobile, color: colors.ink }}>{secret.name}</Text>
+          <Text style={{ ...Typography.labelCaps, color: color, textTransform: 'uppercase' }}>{CATEGORY_LABELS[secret.category]}</Text>
+        </View>
+        <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
+          <Pressable onPress={() => onEdit(secret)} style={({ pressed, hovered }: any) => ({ opacity: pressed ? 0.6 : 1, backgroundColor: hovered ? colors.surfaceCard : 'transparent', padding: 4, borderRadius: 4 })}>
+            {!isWeb ? (
+              <Image source="sf:pencil" style={{ width: 20, height: 20, tintColor: colors.muted }} contentFit="contain" />
+            ) : (
+              <Text style={{ fontSize: 16 }}>✏️</Text>
+            )}
+          </Pressable>
+          <Pressable onPress={() => onDelete(secret.id)} style={({ pressed, hovered }: any) => ({ opacity: pressed ? 0.6 : 1, backgroundColor: hovered ? colors.surfaceCard : 'transparent', padding: 4, borderRadius: 4 })}>
+            {!isWeb ? (
+              <Image source="sf:trash" style={{ width: 20, height: 20, tintColor: colors.error }} contentFit="contain" />
+            ) : (
+              <Text style={{ fontSize: 16 }}>🗑️</Text>
+            )}
+          </Pressable>
+        </View>
       </View>
 
-      {secret.description && (
-        <Text style={{ ...Typography.caption, color: colors.muted }}>{secret.description}</Text>
-      )}
-      <Text style={{ ...Typography.caption, color: colors.mutedSoft }}>Added {formatDate(secret.created_at)}</Text>
-    </View>
+      {/* Value Area */}
+      <View style={{ backgroundColor: colors.canvas, borderWidth: 1, borderColor: colors.border, borderRadius: 12, padding: Spacing.md, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md }}>
+        <ScrollView horizontal scrollEventThrottle={16} showsHorizontalScrollIndicator={false} style={{ flex: 1 }}>
+          {revealed ? (
+            <Text style={{ ...Typography.monoCode, color: colors.ink }}>{secret.value}</Text>
+          ) : (
+            <Text style={{ ...Typography.monoCode, color: colors.muted, letterSpacing: 2 }}>••••••••••••</Text>
+          )}
+        </ScrollView>
+        <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
+          <Pressable onPress={() => setRevealed((v) => !v)} style={({ pressed, hovered }: any) => ({ opacity: pressed ? 0.6 : 1, backgroundColor: hovered ? colors.surfaceCard : 'transparent', padding: 4, borderRadius: 4 })}>
+            {!isWeb ? (
+              <Image source={`sf:${revealed ? 'eye.slash' : 'eye'}`} style={{ width: 20, height: 20, tintColor: colors.muted }} contentFit="contain" />
+            ) : (
+              <Text style={{ fontSize: 16 }}>{revealed ? '🙈' : '👁️'}</Text>
+            )}
+          </Pressable>
+          <Pressable onPress={handleCopy} style={({ pressed, hovered }: any) => ({ opacity: pressed ? 0.6 : 1, backgroundColor: hovered ? colors.surfaceCard : 'transparent', padding: 4, borderRadius: 4 })}>
+            {!isWeb ? (
+              <Image source="sf:doc.on.doc" style={{ width: 20, height: 20, tintColor: color }} contentFit="contain" />
+            ) : (
+              <Text style={{ fontSize: 16 }}>📄</Text>
+            )}
+          </Pressable>
+        </View>
+      </View>
+    </Pressable>
   );
 }

@@ -32,6 +32,7 @@ export default function EditSecretScreen() {
 
   const { control, handleSubmit, formState: { errors }, watch, setValue, reset } = useForm<EditForm>({
     resolver: zodResolver(schema),
+    defaultValues: { name: '', description: '', category: 'api_key' },
   });
 
   const selectedCategory = watch('category');
@@ -62,7 +63,7 @@ export default function EditSecretScreen() {
       keyboardShouldPersistTaps="handled"
     >
       <Controller control={control} name="name" render={({ field: { onChange, onBlur, value } }) => (
-        <FormField label="Secret name" value={value ?? ''} onChangeText={onChange} onBlur={onBlur} error={errors.name?.message} />
+        <FormField label="Secret name" value={value || ''} onChangeText={onChange} onBlur={onBlur} error={errors.name?.message} />
       )} />
 
       <View style={{ gap: Spacing.xs }}>
@@ -74,10 +75,18 @@ export default function EditSecretScreen() {
               <Pressable
                 key={cat}
                 onPress={() => setValue('category', cat as SecretCategory)}
-                style={{ paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: Radius.pill, backgroundColor: isActive ? colors.primary : colors.surfaceCard, borderWidth: 1, borderColor: isActive ? colors.primary : colors.hairline }}
+                style={({ pressed, hovered }: any) => ({
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                  borderRadius: 9999,
+                  backgroundColor: isActive ? colors.brandBlue : hovered ? colors.surfaceSoft : colors.surfaceCard,
+                  borderWidth: 1,
+                  borderColor: isActive ? colors.brandBlue : colors.border,
+                  opacity: pressed ? 0.8 : 1,
+                })}
                 accessibilityRole="button"
               >
-                <Text style={{ ...Typography.caption, color: isActive ? colors.onPrimary : colors.muted }}>
+                <Text style={{ ...Typography.caption, color: isActive ? '#ffffff' : colors.muted }}>
                   {CATEGORY_LABELS[cat as SecretCategory]}
                 </Text>
               </Pressable>
@@ -87,7 +96,7 @@ export default function EditSecretScreen() {
       </View>
 
       <Controller control={control} name="description" render={({ field: { onChange, onBlur, value } }) => (
-        <FormField label="Notes (optional)" value={value ?? ''} onChangeText={onChange} onBlur={onBlur} />
+        <FormField label="Notes (optional)" value={value || ''} onChangeText={onChange} onBlur={onBlur} />
       )} />
 
       <Button label="Save Changes" onPress={handleSubmit(onSubmit)} loading={isPending} fullWidth />

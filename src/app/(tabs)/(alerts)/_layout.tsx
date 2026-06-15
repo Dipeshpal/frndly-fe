@@ -2,7 +2,7 @@ import { Stack } from 'expo-router/stack';
 import { useTheme } from '@/hooks/use-theme';
 import { HamburgerButton } from '@/components/nav/hamburger-button';
 
-export default function DashboardStack() {
+export default function AlertsStack() {
   const { colors } = useTheme();
 
   return (
@@ -17,7 +17,7 @@ export default function DashboardStack() {
         contentStyle: { backgroundColor: colors.canvas },
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Frndly' }} />
+      <Stack.Screen name="index" options={{ headerShown: false, title: 'Alerts' }} />
     </Stack>
   );
 }

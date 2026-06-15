@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router/stack';
 import { useTheme } from '@/hooks/use-theme';
+import { HamburgerButton } from '@/components/nav/hamburger-button';
 
 export default function SettingsStack() {
   const { colors } = useTheme();
@@ -7,10 +8,12 @@ export default function SettingsStack() {
   return (
     <Stack
       screenOptions={{
+        headerShown: process.env.EXPO_OS !== 'web',
         headerLargeTitle: true,
         headerTransparent: true,
         headerShadowVisible: false,
         headerLargeTitleShadowVisible: false,
+        headerLeft: () => <HamburgerButton />,
         contentStyle: { backgroundColor: colors.canvas },
       }}
     >

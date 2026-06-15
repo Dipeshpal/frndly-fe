@@ -1,4 +1,3 @@
-import { Platform } from 'react-native';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -7,8 +6,8 @@ export default function TabLayout() {
 
   return (
     <NativeTabs
-      tintColor={colors.brandPink}
-      {...(Platform.OS === 'ios' ? { minimizeBehavior: 'onScrollDown' } : {})}
+      tintColor={colors.brandBlue}
+      {...(process.env.EXPO_OS === 'ios' ? { minimizeBehavior: 'onScrollDown' } : {})}
     >
       <NativeTabs.Trigger name="(dashboard)">
         <NativeTabs.Trigger.Icon sf={{ default: 'house', selected: 'house.fill' }} md="home" />
@@ -23,6 +22,11 @@ export default function TabLayout() {
       <NativeTabs.Trigger name="(vault)">
         <NativeTabs.Trigger.Icon sf={{ default: 'lock', selected: 'lock.fill' }} md="lock" />
         <NativeTabs.Trigger.Label>Vault</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="(alerts)">
+        <NativeTabs.Trigger.Icon sf={{ default: 'bell', selected: 'bell.fill' }} md="notifications" />
+        <NativeTabs.Trigger.Label>Alerts</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="(settings)">

@@ -16,3 +16,9 @@ export interface ClipboardListResponse {
   page: number;
   per_page: number;
 }
+
+export interface Device {
+  device_name: string;
+  last_active: string;
+  is_current_session: boolean;
+}

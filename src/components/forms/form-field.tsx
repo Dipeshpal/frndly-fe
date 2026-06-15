@@ -1,11 +1,11 @@
 import { View, Text, TextInput, TextInputProps, ViewStyle } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
-import { Radius, Spacing } from '@/theme/spacing';
+import { Spacing } from '@/theme/spacing';
 import { Typography } from '@/theme/typography';
 import { useState } from 'react';
 
 interface FormFieldProps extends TextInputProps {
-  label: string;
+  label?: string;
   error?: string;
   containerStyle?: ViewStyle;
 }
@@ -16,29 +16,33 @@ export function FormField({ label, error, containerStyle, ...props }: FormFieldP
 
   return (
     <View style={[{ gap: Spacing.xs }, containerStyle]}>
-      <Text style={{ ...Typography.titleSm, color: colors.bodyStrong }}>{label}</Text>
+      {label && (
+        <Text style={{ ...Typography.labelCaps, color: colors.body, textTransform: 'uppercase' }}>
+          {label}
+        </Text>
+      )}
       <TextInput
         {...props}
         onFocus={(e) => { setFocused(true); props.onFocus?.(e); }}
         onBlur={(e) => { setFocused(false); props.onBlur?.(e); }}
-        placeholderTextColor={colors.mutedSoft}
+        placeholderTextColor={colors.muted}
         style={[
           {
             height: 44,
-            backgroundColor: colors.canvas,
-            borderRadius: Radius.md,
+            backgroundColor: '#0c0c0c',
+            borderRadius: 12,
             borderCurve: 'continuous',
-            borderWidth: focused ? 1.5 : 1,
-            borderColor: error ? colors.error : focused ? colors.ink : colors.hairline,
+            borderWidth: 1,
+            borderColor: error ? colors.error : focused ? '#4d8eff' : '#262626',
             paddingHorizontal: Spacing.md,
-            ...Typography.bodyMd,
+            ...Typography.bodyLg,
             color: colors.ink,
           },
           props.style,
         ]}
         accessibilityLabel={label}
       />
-      {error && <Text style={{ ...Typography.caption, color: colors.error }}>{error}</Text>}
+      {error && <Text style={{ ...Typography.bodySm, color: colors.error }}>{error}</Text>}
     </View>
   );
 }
