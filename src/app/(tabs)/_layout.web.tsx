@@ -27,6 +27,7 @@ function NavLink({ item, active, collapsed, onPress }: { item: NavItem; active: 
     if (iconName.includes('house')) return '🏠';
     if (iconName.includes('clipboard')) return '📋';
     if (iconName.includes('lock')) return '🔒';
+    if (iconName.includes('note')) return '📝';
     if (iconName.includes('gear')) return '⚙️';
     return '🔹';
   };
@@ -69,6 +70,7 @@ function BottomNav({ activeSegment }: { activeSegment: string }) {
     if (iconName.includes('house')) return '🏠';
     if (iconName.includes('clipboard')) return '📋';
     if (iconName.includes('lock')) return '🔒';
+    if (iconName.includes('note')) return '📝';
     if (iconName.includes('gear')) return '⚙️';
     return '🔹';
   };

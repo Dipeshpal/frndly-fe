@@ -3,4 +3,7 @@ export const QueryKeys = {
   clipboard: (page?: number, search?: string) => ['clipboard', { page, search }] as const,
   secrets: (search?: string, category?: string) => ['secrets', { search, category }] as const,
   secret: (id: string) => ['secrets', id] as const,
+  notes: (page?: number, search?: string, tag?: string, folderId?: string | null, all?: boolean) => ['notes', { page, search, tag, folderId, all }] as const,
+  note: (id: string) => ['notes', id] as const,
+  folders: ['folders'] as const,
 } as const;

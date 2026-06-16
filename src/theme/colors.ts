@@ -45,7 +45,7 @@ export const Colors = {
     surfaceCard: '#141414',
     surfaceStrong: '#272a31',
     surfaceDark: '#0b0e15',
-    onPrimary: '#ffffff',
+    onPrimary: '#0a0a0a',
     onDark: '#ffffff',
     brandPink: '#ff4d8b',
     brandTeal: '#2a6a6a',

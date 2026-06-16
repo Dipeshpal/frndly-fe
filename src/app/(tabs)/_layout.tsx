@@ -24,6 +24,11 @@ export default function TabLayout() {
         <NativeTabs.Trigger.Label>Vault</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
+      <NativeTabs.Trigger name="(notes)">
+        <NativeTabs.Trigger.Icon sf={{ default: 'note.text', selected: 'note.text.badge.plus' }} md="description" />
+        <NativeTabs.Trigger.Label>Notes</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+
       <NativeTabs.Trigger name="(alerts)">
         <NativeTabs.Trigger.Icon sf={{ default: 'bell', selected: 'bell.fill' }} md="notifications" />
         <NativeTabs.Trigger.Label>Alerts</NativeTabs.Trigger.Label>
