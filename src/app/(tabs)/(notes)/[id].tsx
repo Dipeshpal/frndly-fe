@@ -10,8 +10,8 @@ import { LoadingState } from '@/components/feedback/loading-state';
 import { Spacing, Radius } from '@/theme/spacing';
 import { Typography } from '@/theme/typography';
 
-// 'split' only available on web — side-by-side editor + preview
-type Mode = 'edit' | 'split' | 'preview';
+// 'view' = read-only, 'split' only available on web — side-by-side editor + preview
+type Mode = 'view' | 'edit' | 'split' | 'preview';
 
 export default function NoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -25,7 +25,7 @@ export default function NoteDetailScreen() {
   const { mutate: deleteNote } = useDeleteNote();
   const { data: folders = [] } = useFolders();
 
-  const [mode, setMode] = useState<Mode>('edit');
+  const [mode, setMode] = useState<Mode>('view');
   const [tagInput, setTagInput] = useState('');
   const [showFolderPicker, setShowFolderPicker] = useState(false);
 
@@ -51,23 +51,12 @@ export default function NoteDetailScreen() {
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
   }, []);
 
-  const modeIcon = () => {
-    if (mode === 'edit') return isWeb ? '⬜⬜' : 'eye';
-    if (mode === 'split') return isWeb ? '▪️⬜' : 'pencil';
-    return isWeb ? '👁️' : 'pencil';
-  };
-
   const nextMode = (): Mode => {
-    if (!isWeb) return mode === 'edit' ? 'preview' : 'edit';
+    if (mode === 'view') return 'edit';
+    if (!isWeb) return mode === 'edit' ? 'preview' : 'view';
     if (mode === 'edit') return 'split';
     if (mode === 'split') return 'preview';
-    return 'edit';
-  };
-
-  const modeLabel = () => {
-    if (mode === 'edit') return isWeb ? 'Split' : 'Preview';
-    if (mode === 'split') return 'Preview';
-    return 'Edit';
+    return 'view';
   };
 
   useEffect(() => {
@@ -94,33 +83,56 @@ export default function NoteDetailScreen() {
             )}
           </Pressable>
 
-          {/* Mode toggle */}
-          <Pressable
-            onPress={() => setMode(nextMode())}
-            hitSlop={8}
-            style={{
-              paddingHorizontal: Spacing.sm,
-              paddingVertical: 4,
-              borderRadius: Radius.sm,
-              backgroundColor: mode !== 'edit' ? colors.brandLavender : colors.surfaceCard,
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 4,
-            }}
-            accessibilityLabel={modeLabel()}
-          >
-            {!isWeb ? (
-              <Image
-                source={`sf:${mode === 'edit' ? 'eye' : mode === 'split' ? 'rectangle.split.2x1' : 'pencil'}`}
-                style={{ width: 16, height: 16, tintColor: mode !== 'edit' ? '#fff' : colors.muted }}
-                contentFit="contain"
-              />
-            ) : (
-              <Text style={{ fontSize: 12, color: mode !== 'edit' ? '#fff' : colors.muted }}>
-                {modeLabel()}
-              </Text>
-            )}
-          </Pressable>
+          {/* Edit/Mode toggle */}
+          {mode === 'view' ? (
+            <Pressable
+              onPress={() => setMode('edit')}
+              hitSlop={8}
+              style={{
+                paddingHorizontal: Spacing.sm,
+                paddingVertical: 4,
+                borderRadius: Radius.sm,
+                backgroundColor: colors.brandBlue,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 4,
+              }}
+              accessibilityLabel="Edit"
+            >
+              {!isWeb ? (
+                <Image source="sf:pencil" style={{ width: 16, height: 16, tintColor: '#fff' }} contentFit="contain" />
+              ) : (
+                <Text style={{ fontSize: 12, color: '#fff' }}>Edit</Text>
+              )}
+            </Pressable>
+          ) : (
+            <Pressable
+              onPress={() => setMode(nextMode())}
+              hitSlop={8}
+              style={{
+                paddingHorizontal: Spacing.sm,
+                paddingVertical: 4,
+                borderRadius: Radius.sm,
+                backgroundColor: mode !== 'edit' ? colors.brandLavender : colors.surfaceCard,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 4,
+              }}
+              accessibilityLabel={mode === 'edit' ? (isWeb ? 'Split' : 'Preview') : (mode === 'split' ? 'Preview' : 'Edit')}
+            >
+              {!isWeb ? (
+                <Image
+                  source={`sf:${mode === 'edit' ? 'eye' : mode === 'split' ? 'rectangle.split.2x1' : 'pencil'}`}
+                  style={{ width: 16, height: 16, tintColor: mode !== 'edit' ? '#fff' : colors.muted }}
+                  contentFit="contain"
+                />
+              ) : (
+                <Text style={{ fontSize: 12, color: mode !== 'edit' ? '#fff' : colors.muted }}>
+                  {mode === 'edit' ? (isWeb ? 'Split' : 'Preview') : (mode === 'split' ? 'Preview' : 'Edit')}
+                </Text>
+              )}
+            </Pressable>
+          )}
 
           <Pressable
             onPress={handleDelete}
@@ -137,6 +149,7 @@ export default function NoteDetailScreen() {
         </View>
       ),
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigation, mode, note?.is_pinned, isSaving, colors, isWeb]);
 
   const scheduleSave = useCallback((updates: {
@@ -218,25 +231,32 @@ export default function NoteDetailScreen() {
   const header = (
     <>
       {/* Title */}
-      <TextInput
-        value={title}
-        onChangeText={handleTitleChange}
-        placeholder="Note title…"
-        placeholderTextColor={colors.muted}
-        style={{
-          ...Typography.titleLg,
-          color: colors.ink,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.hairline,
-          paddingBottom: Spacing.sm,
-        }}
-        editable={mode !== 'preview'}
-      />
+      {mode === 'view' ? (
+        <Text style={{ ...Typography.titleLg, color: colors.ink, paddingBottom: Spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.hairline }}>
+          {title}
+        </Text>
+      ) : (
+        <TextInput
+          value={title}
+          onChangeText={handleTitleChange}
+          placeholder="Note title…"
+          placeholderTextColor={colors.muted}
+          style={{
+            ...Typography.titleLg,
+            color: colors.ink,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.hairline,
+            paddingBottom: Spacing.sm,
+          }}
+          editable={mode === 'edit'}
+        />
+      )}
 
       {/* Folder badge + picker */}
       <View>
         <Pressable
-          onPress={() => mode !== 'preview' && setShowFolderPicker((v) => !v)}
+          onPress={() => mode === 'edit' && setShowFolderPicker((v) => !v)}
+          disabled={mode !== 'edit'}
           style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start' }}
         >
           {!isWeb ? (
@@ -251,7 +271,7 @@ export default function NoteDetailScreen() {
           <Text style={{ ...Typography.caption, color: currentFolder ? colors.brandLavender : colors.muted }}>
             {currentFolder ? currentFolder.name : 'Unfiled'}
           </Text>
-          {mode !== 'preview' && (
+          {mode === 'edit' && (
             <Text style={{ ...Typography.caption, color: colors.muted }}>▾</Text>
           )}
         </Pressable>
@@ -305,16 +325,17 @@ export default function NoteDetailScreen() {
         {tags.map((tag) => (
           <Pressable
             key={tag}
-            onPress={() => mode !== 'preview' && removeTag(tag)}
+            onPress={() => mode === 'edit' && removeTag(tag)}
+            disabled={mode !== 'edit'}
             style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: `${colors.brandLavender}22`, borderRadius: 9999, paddingHorizontal: 10, paddingVertical: 3 }}
           >
             <Text style={{ ...Typography.caption, color: colors.brandLavender }}>{tag}</Text>
-            {mode !== 'preview' && (
+            {mode === 'edit' && (
               <Text style={{ ...Typography.caption, color: colors.brandLavender }}>✕</Text>
             )}
           </Pressable>
         ))}
-        {mode !== 'preview' && (
+        {mode === 'edit' && (
           <TextInput
             value={tagInput}
             onChangeText={setTagInput}
@@ -386,6 +407,21 @@ export default function NoteDetailScreen() {
             </Markdown>
           </View>
         </View>
+      </ScrollView>
+    );
+  }
+
+  // VIEW mode — read-only display
+  if (mode === 'view') {
+    return (
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={{ padding: Spacing.md, paddingBottom: Spacing.xxl, gap: Spacing.md }}
+      >
+        {header}
+        <Markdown style={markdownStyles}>
+          {content || '*Nothing to display.*'}
+        </Markdown>
       </ScrollView>
     );
   }
