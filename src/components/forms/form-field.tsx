@@ -1,4 +1,5 @@
-import { View, Text, TextInput, TextInputProps, ViewStyle } from 'react-native';
+import { View, Text, TextInput, TextInputProps, ViewStyle, Pressable } from 'react-native';
+import { Image } from 'expo-image';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/theme/spacing';
 import { Typography } from '@/theme/typography';
@@ -10,9 +11,11 @@ interface FormFieldProps extends TextInputProps {
   containerStyle?: ViewStyle;
 }
 
-export function FormField({ label, error, containerStyle, ...props }: FormFieldProps) {
+export function FormField({ label, error, containerStyle, secureTextEntry, ...props }: FormFieldProps) {
   const { colors } = useTheme();
   const [focused, setFocused] = useState(false);
+  const [revealed, setRevealed] = useState(false);
+  const isPassword = secureTextEntry === true;
 
   return (
     <View style={[{ gap: Spacing.xs }, containerStyle]}>
@@ -21,27 +24,30 @@ export function FormField({ label, error, containerStyle, ...props }: FormFieldP
           {label}
         </Text>
       )}
-      <TextInput
-        {...props}
-        onFocus={(e) => { setFocused(true); props.onFocus?.(e); }}
-        onBlur={(e) => { setFocused(false); props.onBlur?.(e); }}
-        placeholderTextColor={colors.muted}
-        style={[
-          {
-            height: 44,
-            backgroundColor: '#0c0c0c',
-            borderRadius: 12,
-            borderCurve: 'continuous',
-            borderWidth: 1,
-            borderColor: error ? colors.error : focused ? '#4d8eff' : '#262626',
-            paddingHorizontal: Spacing.md,
-            ...Typography.bodyLg,
-            color: colors.ink,
-          },
-          props.style,
-        ]}
-        accessibilityLabel={label}
-      />
+      <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#0c0c0c', borderRadius: 12, borderCurve: 'continuous', borderWidth: 1, borderColor: error ? colors.error : focused ? '#4d8eff' : '#262626', paddingHorizontal: Spacing.md }}>
+        <TextInput
+          {...props}
+          secureTextEntry={isPassword && !revealed}
+          onFocus={(e) => { setFocused(true); props.onFocus?.(e); }}
+          onBlur={(e) => { setFocused(false); props.onBlur?.(e); }}
+          placeholderTextColor={colors.body}
+          style={[
+            {
+              height: 44,
+              flex: 1,
+              ...Typography.bodyLg,
+              color: colors.ink,
+            },
+            props.style,
+          ]}
+          accessibilityLabel={label}
+        />
+        {isPassword && (
+          <Pressable onPress={() => setRevealed(!revealed)} style={{ padding: Spacing.xs }}>
+            <Image source={`sf:${revealed ? 'eye.slash' : 'eye'}`} style={{ width: 18, height: 18, tintColor: colors.muted }} contentFit="contain" />
+          </Pressable>
+        )}
+      </View>
       {error && <Text style={{ ...Typography.bodySm, color: colors.error }}>{error}</Text>}
     </View>
   );

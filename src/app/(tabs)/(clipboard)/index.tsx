@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import * as Clipboard from 'expo-clipboard';
 import { useTheme } from '@/hooks/use-theme';
 import { useClipboardList, usePushClipboard, useDeleteClipboardItem } from '@/features/clipboard/hooks/use-clipboard';
+import { useDeviceRegistry, useConnectedDevices } from '@/features/clipboard/hooks/use-devices';
 import { ClipboardItemCard } from '@/features/clipboard/components/clipboard-item';
 import { SearchBar } from '@/components/ui/search-bar';
 import { Button } from '@/components/ui/button';
@@ -12,19 +13,14 @@ import { LoadingState } from '@/components/feedback/loading-state';
 import { Spacing } from '@/theme/spacing';
 import { Typography } from '@/theme/typography';
 
-const MOCK_DEVICES = [
-  { id: '1', name: 'Android Phone', online: true, lastSync: '2m ago', icon: 'iphone' },
-  { id: '2', name: 'Chrome Browser', online: true, lastSync: '5m ago', icon: 'desktopcomputer' },
-  { id: '3', name: 'MacBook', online: false, lastSync: '2h ago', icon: 'laptopcomputer' },
-  { id: '4', name: 'Windows Laptop', online: false, lastSync: '1d ago', icon: 'laptopcomputer' },
-];
-
 export default function ClipboardScreen() {
   const { colors } = useTheme();
   const [search, setSearch] = useState('');
   const [inputText, setInputText] = useState('');
   const isWeb = process.env.EXPO_OS === 'web';
 
+  useDeviceRegistry();
+  const { data: devices, isLoading: devicesLoading } = useConnectedDevices();
   const { data, isLoading, refetch } = useClipboardList(search || undefined);
   const { push, loading: pushing } = usePushClipboard();
   const { mutate: deleteItem } = useDeleteClipboardItem();
@@ -90,29 +86,34 @@ export default function ClipboardScreen() {
           <View style={{ gap: Spacing.sm }}>
             <Text style={{ ...Typography.headlineLgMobile, color: colors.ink, paddingHorizontal: Spacing.md }}>Connected Devices</Text>
             <View style={{ gap: Spacing.sm, paddingHorizontal: Spacing.md }}>
-              {MOCK_DEVICES.map((device) => (
-                <View
-                  key={device.id}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: Spacing.md,
-                    backgroundColor: 'rgba(20,20,20,0.9)',
-                    borderRadius: 12,
-                    borderCurve: 'continuous',
-                    borderWidth: 1,
-                    borderColor: '#262626',
-                    padding: Spacing.md,
-                  }}
-                >
-                  <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: device.online ? '#22c55e' : colors.muted }} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ ...Typography.bodyLg, color: colors.ink }}>{device.name}</Text>
-                    <Text style={{ ...Typography.bodySm, color: colors.muted }}>{device.lastSync}</Text>
+              {devicesLoading ? (
+                <LoadingState message="Loading devices…" style={{ paddingVertical: Spacing.xl }} />
+              ) : devices && devices.length > 0 ? (
+                devices.map((device) => (
+                  <View
+                    key={device.id}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: Spacing.md,
+                      backgroundColor: 'rgba(20,20,20,0.9)',
+                      borderRadius: 12,
+                      borderCurve: 'continuous',
+                      borderWidth: 1,
+                      borderColor: '#262626',
+                      padding: Spacing.md,
+                    }}
+                  >
+                    <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: device.online ? '#22c55e' : colors.muted }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ ...Typography.bodyLg, color: colors.ink }}>{device.name}</Text>
+                      <Text style={{ ...Typography.bodySm, color: colors.muted }}>{new Date(device.last_seen).toLocaleString()}</Text>
+                    </View>
                   </View>
-                  {!isWeb && <Image source={`sf:${device.icon}`} style={{ width: 20, height: 20, tintColor: colors.muted }} contentFit="contain" />}
-                </View>
-              ))}
+                ))
+              ) : (
+                <Text style={{ ...Typography.bodySm, color: colors.muted, textAlign: 'center', paddingVertical: Spacing.md }}>No other devices connected</Text>
+              )}
             </View>
           </View>
 
