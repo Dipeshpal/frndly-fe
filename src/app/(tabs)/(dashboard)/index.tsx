@@ -156,10 +156,10 @@ export default function DashboardScreen() {
                     <Text style={{ ...Typography.bodyLg, color: colors.ink, fontWeight: '600' }}>{device.device_name}</Text>
                     <Text style={{ fontSize: 12, color: colors.muted }}>{device.is_current_session ? 'Current Session' : `Last active ${timeAgo}`}</Text>
                   </View>
-                  <Text style={{ fontSize: 20 }}>{device.device_name.toLowerCase().includes('phone') || device.device_name.toLowerCase().includes('ios') || device.device_name.toLowerCase().includes('android') ? '📱' : '💻'}</Text>
+                  <Text style={{ fontSize: 20 }}>{(device.device_name ?? '').toLowerCase().includes('phone') || (device.device_name ?? '').toLowerCase().includes('ios') || (device.device_name ?? '').toLowerCase().includes('android') ? '📱' : '💻'}</Text>
                 </View>
               )})}
-              <Pressable style={{ padding: Spacing.sm, backgroundColor: '#0c0c0c', alignItems: 'center' }}>
+              <Pressable onPress={() => router.push('/(tabs)/(dashboard)/devices')} style={{ padding: Spacing.sm, backgroundColor: '#0c0c0c', alignItems: 'center' }}>
                 <Text style={{ ...Typography.labelCaps, color: colors.brandBlue }}>Manage Devices</Text>
               </Pressable>
             </View>

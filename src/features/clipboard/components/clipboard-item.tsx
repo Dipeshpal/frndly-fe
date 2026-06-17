@@ -1,4 +1,4 @@
-import { View, Text, Pressable } from 'react-native';
+import { Platform, View, Text, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import * as Clipboard from 'expo-clipboard';
 import { useTheme } from '@/hooks/use-theme';
@@ -14,7 +14,7 @@ interface ClipboardItemProps {
 
 export function ClipboardItemCard({ item, onDelete }: ClipboardItemProps) {
   const { colors } = useTheme();
-  const isWeb = process.env.EXPO_OS === 'web';
+  const isWeb = Platform.OS === 'web';
 
   const handleCopy = async () => {
     await Clipboard.setStringAsync(item.content);

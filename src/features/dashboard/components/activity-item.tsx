@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native';
+import { Platform, View, Text } from 'react-native';
 import { Image } from 'expo-image';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/theme/spacing';
@@ -15,7 +15,7 @@ interface ActivityItemProps {
 
 export function ActivityItem({ icon, iconColor, title, subtitle, timestamp }: ActivityItemProps) {
   const { colors } = useTheme();
-  const isWeb = process.env.EXPO_OS === 'web';
+  const isWeb = Platform.OS === 'web';
 
   return (
     <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md, paddingVertical: Spacing.md }}>

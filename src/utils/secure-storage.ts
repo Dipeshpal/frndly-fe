@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
 const TOKEN_KEY = 'frndly_access_token';
@@ -11,7 +12,7 @@ function webFallback() {
   };
 }
 
-const store = process.env.EXPO_OS === 'web'
+const store = Platform.OS === 'web'
   ? webFallback()
   : {
       get: (key: string) => SecureStore.getItemAsync(key),
@@ -34,7 +35,7 @@ export async function deleteToken(): Promise<void> {
 export async function getDeviceId(): Promise<string> {
   const existing = await store.get(DEVICE_ID_KEY);
   if (existing) return existing;
-  const id = `${process.env.EXPO_OS ?? 'unknown'}-${Math.random().toString(36).slice(2, 8)}`;
+  const id = `${Platform.OS ?? 'unknown'}-${Math.random().toString(36).slice(2, 8)}`;
   await store.set(DEVICE_ID_KEY, id);
   return id;
 }

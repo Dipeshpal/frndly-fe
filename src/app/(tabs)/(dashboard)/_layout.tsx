@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { Stack } from 'expo-router/stack';
 import { useTheme } from '@/hooks/use-theme';
 import { HamburgerButton } from '@/components/nav/hamburger-button';
@@ -8,7 +9,7 @@ export default function DashboardStack() {
   return (
     <Stack
       screenOptions={{
-        headerShown: process.env.EXPO_OS !== 'web',
+        headerShown: Platform.OS !== 'web',
         headerLargeTitle: true,
         headerTransparent: true,
         headerShadowVisible: false,
@@ -18,6 +19,7 @@ export default function DashboardStack() {
       }}
     >
       <Stack.Screen name="index" options={{ title: 'Frndly' }} />
+      <Stack.Screen name="devices" options={{ title: 'Manage Devices', headerLargeTitle: false }} />
     </Stack>
   );
 }

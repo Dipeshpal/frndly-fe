@@ -9,6 +9,7 @@ interface RegisterDeviceInput {
 
 export interface Device {
   id: string;
+  device_id: string;
   name: string;
   os_type: string;
   device_type: string;

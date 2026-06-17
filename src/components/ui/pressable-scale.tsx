@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 import type { ViewStyle } from 'react-native';
-import { Pressable } from 'react-native';
+import { Platform, Pressable } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-const isWeb = process.env.EXPO_OS === 'web';
+const isWeb = Platform.OS === 'web';
 
 interface PressableScaleProps {
   children: ReactNode;

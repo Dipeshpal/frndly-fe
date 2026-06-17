@@ -48,3 +48,7 @@ Reference `.agents/skills/` for detailed guidance:
 - `expo-ui` — Native components (SwiftUI/Jetpack Compose drop-ins)
 - `expo-deployment` — EAS Build, app store submission
 - `expo-dev-client` — Custom native builds
+
+
+## Rules
+- Always use these rules in .claude/rules/custom_rules.md
