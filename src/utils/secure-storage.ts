@@ -12,13 +12,15 @@ function webFallback() {
   };
 }
 
-const store = Platform.OS === 'web'
+export const storage = Platform.OS === 'web'
   ? webFallback()
   : {
       get: (key: string) => SecureStore.getItemAsync(key),
       set: (key: string, value: string) => SecureStore.setItemAsync(key, value),
       delete: (key: string) => SecureStore.deleteItemAsync(key),
     };
+
+const store = storage;
 
 export async function getToken(): Promise<string | null> {
   return store.get(TOKEN_KEY);

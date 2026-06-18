@@ -3,6 +3,7 @@ import { Stack } from 'expo-router/stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Platform } from 'react-native';
 import { useAuthStore } from '@/store/auth-store';
+import { useSettingsStore } from '@/store/settings-store';
 import { ToastProvider } from '@/components/ui/toast';
 import { MobileDrawer } from '@/components/nav/mobile-drawer';
 
@@ -13,11 +14,13 @@ const queryClient = new QueryClient({
 });
 
 export default function RootLayout() {
-  const initialize = useAuthStore((s) => s.initialize);
+  const initializeAuth = useAuthStore((s) => s.initialize);
+  const initializeSettings = useSettingsStore((s) => s.initialize);
 
   useEffect(() => {
-    initialize();
-  }, [initialize]);
+    initializeAuth();
+    initializeSettings();
+  }, [initializeAuth, initializeSettings]);
 
   return (
     <QueryClientProvider client={queryClient}>
