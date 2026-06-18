@@ -35,6 +35,11 @@ export default function TabLayout() {
         <Label>Alerts</Label>
       </NativeTabs.Trigger>
 
+      <NativeTabs.Trigger name="(devices)">
+        <Icon sf={{ default: 'desktopcomputer', selected: 'desktopcomputer' }} drawable="computer" />
+        <Label>Devices</Label>
+      </NativeTabs.Trigger>
+
       <NativeTabs.Trigger name="(settings)">
         <Icon sf="gear" drawable="settings" />
         <Label>Settings</Label>

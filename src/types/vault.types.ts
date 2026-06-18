@@ -15,8 +15,14 @@ export interface Secret {
   value: string;
   description: string | null;
   category: SecretCategory;
+  folder: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface FolderInfo {
+  name: string;
+  count: number;
 }
 
 export interface CreateSecretInput {
@@ -24,6 +30,7 @@ export interface CreateSecretInput {
   value: string;
   description?: string;
   category: SecretCategory;
+  folder: string;
 }
 
 export type UpdateSecretInput = Partial<CreateSecretInput>;

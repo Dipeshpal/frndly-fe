@@ -1,11 +1,10 @@
 import { ScrollView, View, Text, Platform, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Image } from 'expo-image';
 import { useAuthStore } from '@/store/auth-store';
+import { ClipboardItemCard } from '@/features/clipboard/components/clipboard-item';
 import { useClipboardList, useDeviceList } from '@/features/clipboard/hooks/use-clipboard';
 import { useSecretList } from '@/features/vault/hooks/use-vault';
 import { SummaryCard } from '@/features/dashboard/components/summary-card';
-import { Card } from '@/components/ui/card';
 import { Spacing } from '@/theme/spacing';
 import { Typography } from '@/theme/typography';
 import { useTheme } from '@/hooks/use-theme';
@@ -102,38 +101,9 @@ export default function DashboardScreen() {
             </Pressable>
           </View>
           <View style={{ gap: Spacing.sm }}>
-            {clipboardData?.items?.slice(0, 3).map(item => {
-              const isUrl = item.content.startsWith('http');
-              const icon = isUrl ? '🔗' : '📝';
-              const itemColor = isUrl ? colors.brandBlue : colors.brandLavender;
-              
-              const date = new Date(item.created_at);
-              const now = new Date();
-              const diffMins = Math.floor((now.getTime() - date.getTime()) / 60000);
-              const timeAgo = diffMins < 60 ? `${diffMins}m ago` : diffMins < 1440 ? `${Math.floor(diffMins/60)}h ago` : `${Math.floor(diffMins/1440)}d ago`;
-
-              return (
-              <Pressable key={item.id} style={({hovered}: any) => ({
-                backgroundColor: hovered ? colors.surfaceSoft : colors.surfaceCard,
-                borderWidth: 1,
-                borderColor: colors.border,
-                borderLeftWidth: 4,
-                borderLeftColor: itemColor,
-                borderRadius: 12,
-                padding: Spacing.md,
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: Spacing.md
-              })}>
-                <View style={{ width: 48, height: 48, backgroundColor: '#0c0c0c', borderRadius: 8, alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ fontSize: 20 }}>{icon}</Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ ...Typography.bodyLg, color: colors.ink }} numberOfLines={1}>{item.content}</Text>
-                  <Text style={{ fontSize: 12, color: colors.muted, marginTop: 2 }}>Copied from {item.device_name} • {timeAgo}</Text>
-                </View>
-              </Pressable>
-            )})}
+            {clipboardData?.items?.slice(0, 3).map(item => (
+              <ClipboardItemCard key={item.id} item={item} />
+            ))}
           </View>
         </View>
 

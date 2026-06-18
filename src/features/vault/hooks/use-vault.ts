@@ -5,10 +5,37 @@ import { extractErrorMessage } from '@/api/client';
 import { useState } from 'react';
 import type { CreateSecretInput, UpdateSecretInput } from '@/types/vault.types';
 
-export function useSecretList(search?: string, category?: string) {
+export function useFolderList() {
   return useQuery({
-    queryKey: QueryKeys.secrets(search, category),
-    queryFn: () => vaultApi.list({ search, category }),
+    queryKey: ['vault-folders'],
+    queryFn: () => vaultApi.folders(),
+  });
+}
+
+export function useFolderPreview(folderName: string | null) {
+  return useQuery({
+    queryKey: ['vault-folder-preview', folderName],
+    queryFn: () => vaultApi.previewFolder(folderName!),
+    enabled: !!folderName,
+    staleTime: 30_000,
+  });
+}
+
+export function useDeleteFolder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (folderName: string) => vaultApi.deleteFolder(folderName),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['secrets'] });
+      qc.invalidateQueries({ queryKey: ['vault-folders'] });
+    },
+  });
+}
+
+export function useSecretList(search?: string, category?: string, folder?: string) {
+  return useQuery({
+    queryKey: QueryKeys.secrets(search, category, folder),
+    queryFn: () => vaultApi.list({ search, category, folder }),
   });
 }
 
@@ -18,7 +45,11 @@ export function useCreateSecret() {
 
   const mutation = useMutation({
     mutationFn: (data: CreateSecretInput) => vaultApi.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['secrets'] }); setError(null); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['secrets'] });
+      qc.invalidateQueries({ queryKey: ['vault-folders'] });
+      setError(null);
+    },
     onError: (e) => setError(extractErrorMessage(e)),
   });
 
@@ -29,7 +60,10 @@ export function useUpdateSecret() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateSecretInput }) => vaultApi.update(id, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['secrets'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['secrets'] });
+      qc.invalidateQueries({ queryKey: ['vault-folders'] });
+    },
   });
 }
 
@@ -37,6 +71,9 @@ export function useDeleteSecret() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => vaultApi.delete(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['secrets'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['secrets'] });
+      qc.invalidateQueries({ queryKey: ['vault-folders'] });
+    },
   });
 }

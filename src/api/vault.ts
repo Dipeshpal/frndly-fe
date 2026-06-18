@@ -1,8 +1,23 @@
 import { apiClient } from './client';
-import type { Secret, CreateSecretInput, UpdateSecretInput } from '@/types/vault.types';
+import type { Secret, FolderInfo, CreateSecretInput, UpdateSecretInput } from '@/types/vault.types';
+
+export interface SecretPreview {
+  id: string;
+  name: string;
+  category: string;
+}
 
 export const vaultApi = {
-  list: (params?: { search?: string; category?: string }) =>
+  folders: () =>
+    apiClient.get<FolderInfo[]>('/secrets/folders').then((r) => r.data),
+
+  previewFolder: (folderName: string) =>
+    apiClient.get<SecretPreview[]>(`/secrets/folders/${encodeURIComponent(folderName)}/preview`).then((r) => r.data),
+
+  deleteFolder: (folderName: string) =>
+    apiClient.delete(`/secrets/folders/${encodeURIComponent(folderName)}`).then((r) => r.data),
+
+  list: (params?: { search?: string; category?: string; folder?: string }) =>
     apiClient.get<Secret[]>('/secrets', { params }).then((r) => r.data),
 
   create: (data: CreateSecretInput) =>
