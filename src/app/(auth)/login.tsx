@@ -109,28 +109,6 @@ export default function LoginScreen() {
             size="lg"
           />
 
-          {/* Divider */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
-            <View style={{ flex: 1, height: 1, backgroundColor: colors.hairline }} />
-            <Text style={{ ...Typography.labelCaps, color: colors.muted, textTransform: 'uppercase' }}>Or continue with</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: colors.hairline }} />
-          </View>
-
-          {/* Social */}
-          <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
-            <Pressable
-              style={({ pressed }) => ({ flex: 1, backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.hairline, borderRadius: 12, paddingVertical: Spacing.sm, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.8 : 1 })}
-              accessibilityRole="button"
-            >
-              <Text style={{ ...Typography.bodySm, color: colors.ink }}>Google</Text>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => ({ flex: 1, backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.hairline, borderRadius: 12, paddingVertical: Spacing.sm, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.8 : 1 })}
-              accessibilityRole="button"
-            >
-              <Text style={{ ...Typography.bodySm, color: colors.ink }}>Apple</Text>
-            </Pressable>
-          </View>
         </View>
 
         {/* Footer */}
