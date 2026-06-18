@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/react';
+import { persist } from 'zustand';
 import { storage } from '@/utils/secure-storage';
 
 interface SettingsState {
@@ -11,6 +11,19 @@ interface SettingsState {
   setClipboardAutoSync: (v: boolean) => void;
   initialize: () => Promise<void>;
 }
+
+const storageAdapter = {
+  getItem: async (key: string) => {
+    const value = await storage.get(key);
+    return value ? value : null;
+  },
+  setItem: async (key: string, value: string) => {
+    await storage.set(key, value);
+  },
+  removeItem: async (key: string) => {
+    await storage.delete(key);
+  },
+};
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
@@ -35,18 +48,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: 'frndly-settings',
-      storage: createJSONStorage(() => ({
-        getItem: async (key) => {
-          const value = await storage.get(key);
-          return value ? value : null;
-        },
-        setItem: async (key, value) => {
-          await storage.set(key, value);
-        },
-        removeItem: async (key) => {
-          await storage.delete(key);
-        },
-      })),
+      storage: storageAdapter as any,
       partialize: (state) => ({
         darkMode: state.darkMode,
         notifications: state.notifications,
