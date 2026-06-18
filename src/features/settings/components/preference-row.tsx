@@ -1,4 +1,5 @@
-import { View, Text, Switch, Pressable, ViewStyle, Platform } from 'react-native';
+import { View, Text, Pressable, ViewStyle, Platform } from 'react-native';
+import { Switch } from 'react-native-paper';
 import { Image } from 'expo-image';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/theme/spacing';
@@ -57,24 +58,7 @@ export function PreferenceRow({
         {subtitle && <Text style={{ ...Typography.caption, color: colors.muted }}>{subtitle}</Text>}
       </View>
       {type === 'toggle' && onValueChange && (
-        isWeb ? (
-          <Pressable
-            onPress={() => onValueChange(!value)}
-            style={{
-              width: 50,
-              height: 28,
-              borderRadius: 14,
-              backgroundColor: value ? '#4ade80' : '#525252',
-              alignItems: value ? 'flex-end' : 'flex-start',
-              justifyContent: 'center',
-              paddingHorizontal: 2,
-            }}
-          >
-            <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#fff' }} />
-          </Pressable>
-        ) : (
-          <Switch value={value} onValueChange={onValueChange} />
-        )
+        <Switch value={value} onValueChange={onValueChange} color={colors.brandBlue} />
       )}
       {type === 'link' && (
         <Image source="sf:chevron.right" style={{ width: 14, height: 14, tintColor: colors.mutedSoft }} contentFit="contain" />

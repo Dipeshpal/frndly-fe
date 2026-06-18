@@ -24,7 +24,7 @@ export function FormField({ label, error, containerStyle, secureTextEntry, ...pr
           {label}
         </Text>
       )}
-      <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#0c0c0c', borderRadius: 12, borderCurve: 'continuous', borderWidth: 1, borderColor: error ? colors.error : focused ? '#4d8eff' : '#262626', paddingHorizontal: Spacing.md }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.inputBackground, borderRadius: 12, borderCurve: 'continuous', borderWidth: 1, borderColor: error ? colors.error : focused ? colors.brandBlue : colors.inputBorder, paddingHorizontal: Spacing.md }}>
         <TextInput
           {...props}
           secureTextEntry={isPassword && !revealed}

@@ -5,9 +5,8 @@ import { useSettingsStore } from '@/store/settings-store';
 export type AppTheme = { colors: typeof Colors.light; isDark: boolean };
 
 export function useTheme(): AppTheme {
-  const systemScheme = useColorScheme();
   const darkMode = useSettingsStore((s) => s.darkMode);
-  const isDark = darkMode || systemScheme === 'dark';
+  const isDark = darkMode;
   const colors = isDark ? Colors.dark : Colors.light;
   return { colors: colors as typeof Colors.light, isDark };
 }

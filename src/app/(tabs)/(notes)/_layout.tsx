@@ -14,6 +14,8 @@ export default function NotesStack() {
         headerTransparent: true,
         headerShadowVisible: false,
         headerLargeTitleShadowVisible: false,
+        headerStyle: { backgroundColor: colors.canvas },
+        headerTintColor: colors.ink,
         contentStyle: { backgroundColor: colors.canvas },
       }}
     >
@@ -28,6 +30,8 @@ export default function NotesStack() {
           headerLargeTitle: false,
           headerShown: true,
           headerTransparent: false,
+          headerStyle: { backgroundColor: colors.canvas },
+          headerTintColor: colors.ink,
         }}
       />
       <Stack.Screen
@@ -40,6 +44,8 @@ export default function NotesStack() {
           headerLargeTitle: false,
           headerShown: true,
           headerTransparent: false,
+          headerStyle: { backgroundColor: colors.canvas },
+          headerTintColor: colors.ink,
         }}
       />
     </Stack>

@@ -26,11 +26,11 @@ export function ClipboardItemCard({ item, onDelete }: ClipboardItemProps) {
     <Pressable
       onPress={handleCopy}
       style={({ pressed }: any) => ({
-        backgroundColor: pressed ? 'rgba(30,30,30,0.95)' : 'rgba(20,20,20,0.9)',
+        backgroundColor: pressed ? colors.surfaceSoft : colors.surfaceCard,
         borderRadius: 12,
         borderCurve: 'continuous',
         borderWidth: 1,
-        borderColor: '#262626',
+        borderColor: colors.border,
         borderLeftWidth: 4,
         borderLeftColor: colors.brandBlue,
         padding: Spacing.md,

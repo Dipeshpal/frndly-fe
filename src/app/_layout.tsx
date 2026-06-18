@@ -7,6 +7,8 @@ import { useSettingsStore } from '@/store/settings-store';
 import { ToastProvider } from '@/components/ui/toast';
 import { MobileDrawer } from '@/components/nav/mobile-drawer';
 
+import { PaperProvider } from 'react-native-paper';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: { staleTime: 30_000, retry: 1 },
@@ -24,14 +26,16 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-        </Stack>
-        {Platform.OS !== 'web' && <MobileDrawer />}
-      </ToastProvider>
+      <PaperProvider>
+        <ToastProvider>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(tabs)" />
+          </Stack>
+          {Platform.OS !== 'web' && <MobileDrawer />}
+        </ToastProvider>
+      </PaperProvider>
     </QueryClientProvider>
   );
 }

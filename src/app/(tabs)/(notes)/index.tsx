@@ -4,6 +4,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { useTheme } from '@/hooks/use-theme';
+import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { useNoteList, useDeleteNote, useUpdateNote } from '@/features/notes/hooks/use-notes';
 import { NoteCard } from '@/features/notes/components/note-card';
 import { FolderTree } from '@/features/notes/components/folder-tree';
@@ -21,6 +22,7 @@ export default function NotesScreen() {
   // null = unfiled, string = folder id, 'all' = all notes
   const [selectedFolder, setSelectedFolder] = useState<string | null | 'all'>(null);
   const isWeb = Platform.OS === 'web';
+  const { isMobile } = useBreakpoint();
 
   const isAll = selectedFolder === 'all';
   const folderId = isAll ? undefined : (selectedFolder as string | null | undefined);
@@ -161,8 +163,8 @@ export default function NotesScreen() {
     />
   );
 
-  // Web: sidebar + content two-column
-  if (isWeb) {
+  // Desktop/Tablet: sidebar + content two-column
+  if (!isMobile) {
     return (
       <View style={{ flex: 1, flexDirection: 'row' }}>
         {/* Folder sidebar */}
@@ -237,7 +239,11 @@ export default function NotesScreen() {
                 gap: Spacing.sm,
               }}
             >
-              <Image source="sf:magnifyingglass" style={{ width: 16, height: 16, tintColor: colors.muted }} contentFit="contain" />
+              {!isWeb ? (
+                <Image source="sf:magnifyingglass" style={{ width: 16, height: 16, tintColor: colors.muted }} contentFit="contain" />
+              ) : (
+                <Text style={{ fontSize: 16 }}>🔍</Text>
+              )}
               <TextInput
                 value={search}
                 onChangeText={setSearch}
@@ -304,7 +310,11 @@ export default function NotesScreen() {
         accessibilityRole="button"
         accessibilityLabel="New note"
       >
-        <Image source="sf:plus" style={{ width: 24, height: 24, tintColor: '#ffffff' }} contentFit="contain" />
+        {!isWeb ? (
+          <Image source="sf:plus" style={{ width: 24, height: 24, tintColor: '#ffffff' }} contentFit="contain" />
+        ) : (
+          <Text style={{ fontSize: 24, color: '#ffffff', fontWeight: 'bold' }}>+</Text>
+        )}
       </Pressable>
     </View>
   );

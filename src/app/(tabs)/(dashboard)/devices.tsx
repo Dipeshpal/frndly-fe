@@ -84,7 +84,7 @@ export default function DevicesScreen() {
             style={{
               backgroundColor: colors.surfaceCard,
               borderWidth: 1,
-              borderColor: isCurrent ? colors.brandBlue : '#262626',
+              borderColor: isCurrent ? colors.brandBlue : colors.border,
               borderRadius: 12,
               borderCurve: 'continuous',
               padding: Spacing.md,

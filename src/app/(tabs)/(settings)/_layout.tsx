@@ -14,6 +14,8 @@ export default function SettingsStack() {
         headerTransparent: true,
         headerShadowVisible: false,
         headerLargeTitleShadowVisible: false,
+        headerStyle: { backgroundColor: colors.canvas },
+        headerTintColor: colors.ink,
         headerLeft: () => <HamburgerButton />,
         contentStyle: { backgroundColor: colors.canvas },
       }}

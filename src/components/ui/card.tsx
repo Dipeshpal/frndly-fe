@@ -18,7 +18,7 @@ export function Card({ children, variant = 'default', padding = 16, style, shado
   const { colors } = useTheme();
 
   const bgMap: Record<CardVariant, string> = {
-    default: 'rgba(20,20,20,0.9)',
+    default: colors.surfaceCard,
     pink: colors.brandPink,
     teal: colors.brandTeal,
     lavender: colors.brandLavender,
@@ -35,7 +35,7 @@ export function Card({ children, variant = 'default', padding = 16, style, shado
           borderCurve: 'continuous',
           padding,
           borderWidth: 1,
-          borderColor: variant === 'default' ? '#262626' : 'transparent',
+          borderColor: variant === 'default' ? colors.border : 'transparent',
           ...(leftBorderColor && { borderLeftWidth: 4, borderLeftColor: leftBorderColor }),
           ...(shadow && { boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }),
         },

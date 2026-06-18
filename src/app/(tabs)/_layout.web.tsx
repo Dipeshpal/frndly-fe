@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { View, Text, Pressable, ScrollView, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { Slot, useRouter, useSegments } from 'expo-router';
-import Animated, { useAnimatedStyle, withTiming, FadeIn } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, withTiming, withSpring, FadeIn, ZoomIn, ZoomOut } from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuthStore } from '@/store/auth-store';
 import { useUIStore } from '@/store/ui-store';
@@ -67,6 +68,20 @@ function BottomNav({ activeSegment }: { activeSegment: string }) {
   const { colors } = useTheme();
   const router = useRouter();
   const isWeb = Platform.OS === 'web';
+  const [showMenu, setShowMenu] = useState(false);
+
+  const toggleMenu = () => {
+    if (!isWeb) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    }
+    setShowMenu(!showMenu);
+  };
+
+  const plusIconStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ rotate: withSpring(showMenu ? '45deg' : '0deg', { damping: 12, stiffness: 200 }) }]
+    };
+  });
 
   const getEmoji = (iconName: string) => {
     if (iconName.includes('house')) return '🏠';
@@ -79,55 +94,158 @@ function BottomNav({ activeSegment }: { activeSegment: string }) {
     return '🔹';
   };
 
+  const mainSegments = ['(dashboard)', '(alerts)', '(devices)', '(settings)'];
+  const menuSegments = ['(clipboard)', '(vault)', '(notes)'];
+  
+  const mainItems = NAV_ITEMS.filter(item => mainSegments.includes(item.segment));
+  const menuItems = NAV_ITEMS.filter(item => menuSegments.includes(item.segment));
+
+  const renderItem = (item: NavItem) => {
+    const active = item.segment === activeSegment;
+    return (
+      <Pressable
+        key={item.segment}
+        onPress={() => router.push(item.route)}
+        style={{
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingVertical: Spacing.xs,
+          paddingHorizontal: Spacing.xs,
+          backgroundColor: active ? `${colors.brandBlue}20` : 'transparent',
+          borderRadius: Radius.lg,
+          flex: 1,
+          gap: 4,
+        }}
+      >
+        {!isWeb ? (
+          <Image source={`sf:${active ? item.iconActive : item.icon}`} style={{ width: 20, height: 20, tintColor: active ? colors.brandBlue : colors.muted }} contentFit="contain" />
+        ) : (
+          <Text style={{ fontSize: 16 }}>{getEmoji(item.icon)}</Text>
+        )}
+        <Text style={{ ...Typography.labelCaps, color: active ? colors.brandBlue : colors.muted, fontSize: 10 }}>
+          {item.label}
+        </Text>
+      </Pressable>
+    );
+  };
+
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        paddingVertical: Spacing.sm,
-        paddingHorizontal: Spacing.xs,
-        backgroundColor: colors.surfaceCard,
-        borderTopWidth: 1,
-        borderTopColor: colors.hairline,
-        borderTopLeftRadius: Radius.xl,
-        borderTopRightRadius: Radius.xl,
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        zIndex: 50,
-      }}
-    >
-      {NAV_ITEMS.map((item) => {
-        const active = item.segment === activeSegment;
-        return (
-          <Pressable
-            key={item.segment}
-            onPress={() => router.push(item.route)}
-            style={{
-              alignItems: 'center',
-              justifyContent: 'center',
-              paddingVertical: Spacing.xs,
-              paddingHorizontal: Spacing.sm,
-              backgroundColor: active ? `${colors.brandBlue}20` : 'transparent',
-              borderRadius: Radius.lg,
-              minWidth: 64,
-              gap: 4,
-            }}
-          >
-            {!isWeb ? (
-              <Image source={`sf:${active ? item.iconActive : item.icon}`} style={{ width: 20, height: 20, tintColor: active ? colors.brandBlue : colors.muted }} contentFit="contain" />
-            ) : (
-              <Text style={{ fontSize: 16 }}>{getEmoji(item.icon)}</Text>
-            )}
-            <Text style={{ ...Typography.labelCaps, color: active ? colors.brandBlue : colors.muted, fontSize: 10 }}>
-              {item.label}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </View>
+    <>
+      {/* Overlay to close menu when clicking outside */}
+      {showMenu && (
+        <Pressable 
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 60, zIndex: 40 }}
+          onPress={() => setShowMenu(false)} 
+        />
+      )}
+      
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-around',
+          alignItems: 'center',
+          paddingVertical: Spacing.sm,
+          paddingHorizontal: Spacing.xs,
+          backgroundColor: colors.surfaceCard,
+          borderTopWidth: 1,
+          borderTopColor: colors.hairline,
+          borderTopLeftRadius: Radius.xl,
+          borderTopRightRadius: Radius.xl,
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 50,
+        }}
+      >
+        {mainItems.slice(0, 2).map(renderItem)}
+        
+        {/* Center FAB */}
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ position: 'relative', width: 48, height: 48, marginTop: -20, zIndex: 60 }}>
+            {/* Popover Menu (Semi-circle) */}
+            {showMenu && menuItems.map((item, index) => {
+              const isLeft = index === 0;
+              const isTop = index === 1;
+              const isRight = index === 2;
+              const active = activeSegment === item.segment;
+              
+              return (
+                <Animated.View
+                  key={item.segment}
+                  entering={ZoomIn.duration(200).delay(index * 50)}
+                  exiting={ZoomOut.duration(150)}
+                  style={{
+                    position: 'absolute',
+                    bottom: isTop ? 80 : 38,
+                    left: isLeft ? -70 : isTop ? -8 : undefined,
+                    right: isRight ? -70 : undefined,
+                    alignItems: 'center',
+                    width: 64,
+                    zIndex: 60,
+                  }}
+                >
+                  <Pressable
+                    onPress={() => {
+                      if (!isWeb) Haptics.selectionAsync().catch(() => {});
+                      setShowMenu(false);
+                      router.push(item.route);
+                    }}
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 24,
+                      backgroundColor: active ? `${colors.brandBlue}20` : colors.surfaceCard,
+                      borderWidth: 1,
+                      borderColor: colors.hairline,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.2,
+                      shadowRadius: 8,
+                      elevation: 10,
+                      marginBottom: 4,
+                    }}
+                  >
+                    {!isWeb ? (
+                      <Image source={`sf:${active ? item.iconActive : item.icon}`} style={{ width: 20, height: 20, tintColor: active ? colors.brandBlue : colors.ink }} contentFit="contain" />
+                    ) : (
+                      <Text style={{ fontSize: 20 }}>{getEmoji(item.icon)}</Text>
+                    )}
+                  </Pressable>
+                  <Text style={{ ...Typography.labelCaps, color: active ? colors.brandBlue : colors.ink, fontSize: 10 }}>{item.label}</Text>
+                </Animated.View>
+              );
+            })}
+
+            <Pressable
+              onPress={toggleMenu}
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 24,
+                backgroundColor: showMenu ? colors.surfaceCard : colors.brandBlue,
+                alignItems: 'center',
+                justifyContent: 'center',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 4,
+                elevation: 5,
+                borderWidth: showMenu ? 1 : 0,
+                borderColor: colors.hairline,
+                zIndex: 61,
+              }}
+            >
+              <Animated.Text style={[{ color: showMenu ? colors.ink : '#fff', fontSize: 24, fontWeight: 'bold', lineHeight: 28 }, plusIconStyle]}>+</Animated.Text>
+            </Pressable>
+          </View>
+        </View>
+
+        {mainItems.slice(2).map(renderItem)}
+      </View>
+    </>
   );
 }
 
@@ -221,7 +339,6 @@ export default function WebLayout() {
           }}
         >
           <Text style={{ ...Typography.titleMd, color: colors.ink }}>{activeItem.label}</Text>
-          <ThemeToggle />
         </View>
 
         {/* Content */}
@@ -238,11 +355,3 @@ export default function WebLayout() {
   );
 }
 
-function ThemeToggle() {
-  const { colors, isDark } = useTheme();
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
-      <Text style={{ ...Typography.bodySm, color: colors.muted }}>{isDark ? '🌙' : '☀️'}</Text>
-    </View>
-  );
-}

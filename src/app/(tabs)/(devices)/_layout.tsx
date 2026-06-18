@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { Stack } from 'expo-router/stack';
 import { useTheme } from '@/hooks/use-theme';
 import { HamburgerButton } from '@/components/nav/hamburger-button';
@@ -8,10 +9,13 @@ export default function DevicesStack() {
   return (
     <Stack
       screenOptions={{
+        headerShown: Platform.OS !== 'web',
         headerLargeTitle: false,
         headerTransparent: false,
         headerShadowVisible: false,
         contentStyle: { backgroundColor: colors.canvas },
+        headerStyle: { backgroundColor: colors.canvas },
+        headerTintColor: colors.ink,
         headerLeft: () => <HamburgerButton />,
       }}
     >

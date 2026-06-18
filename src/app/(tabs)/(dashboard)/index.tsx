@@ -34,27 +34,22 @@ export default function DashboardScreen() {
   };
 
   return (
-    <ScrollView style={{ flex: 1 }} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ gap: Spacing.lg, paddingBottom: Spacing.xxl }}>
+    <ScrollView 
+      style={{ flex: 1, width: '100%' }} 
+      contentInsetAdjustmentBehavior="automatic" 
+      contentContainerStyle={{ width: '100%', gap: Spacing.lg, paddingBottom: Spacing.xxl }}
+      showsVerticalScrollIndicator={false}
+    >
       {/* Hero Greeting */}
-      <View style={{ marginHorizontal: Spacing.md, flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'flex-end', gap: Spacing.md }}>
-        <View>
+      <View style={{ width: '100%', paddingHorizontal: Spacing.md, flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'flex-end', gap: Spacing.md }}>
+        <View style={{ flex: 1, flexShrink: 1 }}>
           <Text style={{ ...Typography.displaySm, color: colors.ink }}>Welcome back, {user?.name ?? 'Alex'}</Text>
           <Text style={{ ...Typography.bodyLg, color: colors.muted }}>Your digital ecosystem is synced and secure.</Text>
-        </View>
-        <View style={{ flexDirection: 'row', gap: Spacing.md }}>
-          <View style={{ paddingHorizontal: 16, paddingVertical: 8, backgroundColor: colors.surfaceSoft, borderWidth: 1, borderColor: colors.border, borderRadius: 12, minWidth: 120 }}>
-            <Text style={{ ...Typography.labelCaps, color: colors.muted, textTransform: 'uppercase' }}>Active Clips</Text>
-            <Text style={{ ...Typography.statNumber, color: colors.brandBlue }}>{clipboardCount}</Text>
-          </View>
-          <View style={{ paddingHorizontal: 16, paddingVertical: 8, backgroundColor: colors.surfaceSoft, borderWidth: 1, borderColor: colors.border, borderRadius: 12, minWidth: 120 }}>
-            <Text style={{ ...Typography.labelCaps, color: colors.muted, textTransform: 'uppercase' }}>Security Level</Text>
-            <Text style={{ ...Typography.statNumber, color: colors.brandLavender }}>A+</Text>
-          </View>
         </View>
       </View>
 
       {/* Metrics Grid */}
-      <View style={{ marginHorizontal: Spacing.md, flexDirection: isMobile ? 'column' : 'row', flexWrap: 'wrap', gap: Spacing.md }}>
+      <View style={{ width: '100%', paddingHorizontal: Spacing.md, flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md }}>
         <SummaryCard 
           title="Sync Activity" 
           value={formatBytes(stats?.sync_activity_bytes)} 
@@ -87,10 +82,28 @@ export default function DashboardScreen() {
           statusLabel="Online" 
           statusColor="#4ade80" 
         />
+        <SummaryCard 
+          title="Daily Notifications" 
+          value={stats?.daily_notifications_count ?? 0} 
+          icon={isWeb ? '🔔' : 'notifications'} 
+          color="#ffb786" 
+        />
+        <SummaryCard 
+          title="Daily Clips" 
+          value={stats?.daily_clipboard_items_count ?? 0} 
+          icon={isWeb ? '📋' : 'content_paste'} 
+          color={colors.brandLavender} 
+        />
+        <SummaryCard 
+          title="Daily Vault Items" 
+          value={stats?.daily_vault_items_count ?? 0} 
+          icon={isWeb ? '🔐' : 'lock'} 
+          color="#4ade80" 
+        />
       </View>
 
       {/* Two Column Layout for Desktop, Stacked for Mobile */}
-      <View style={{ marginHorizontal: Spacing.md, flexDirection: isDesktop ? 'row' : 'column', gap: Spacing.lg }}>
+      <View style={{ width: '100%', paddingHorizontal: Spacing.md, flexDirection: isDesktop ? 'row' : 'column', gap: Spacing.lg }}>
         
         {/* Left: Recent Clipboard */}
         <View style={{ flex: isDesktop ? 2 : 1, gap: Spacing.md }}>
@@ -114,22 +127,28 @@ export default function DashboardScreen() {
             <Text style={{ ...Typography.headlineLgMobile, color: colors.ink }}>Active Devices</Text>
             <View style={{ backgroundColor: colors.surfaceCard, borderWidth: 1, borderColor: colors.border, borderRadius: 12, overflow: 'hidden' }}>
               {devices?.map((device, idx) => {
-                const date = new Date(device.last_active);
+                const d = device as any;
+                const isoDate = d.last_active || d.last_seen;
+                const date = isoDate ? new Date(isoDate) : null;
                 const now = new Date();
-                const diffMins = Math.floor((now.getTime() - date.getTime()) / 60000);
-                const timeAgo = diffMins < 60 ? `${diffMins}m ago` : diffMins < 1440 ? `${Math.floor(diffMins/60)}h ago` : `${Math.floor(diffMins/1440)}d ago`;
+                let timeAgo = 'Unknown';
+                if (date && !isNaN(date.getTime())) {
+                  const diffMins = Math.floor((now.getTime() - date.getTime()) / 60000);
+                  timeAgo = diffMins < 1 ? 'just now' : diffMins < 60 ? `${diffMins}m ago` : diffMins < 1440 ? `${Math.floor(diffMins/60)}h ago` : `${Math.floor(diffMins/1440)}d ago`;
+                }
+                const deviceName = d.device_name || d.name || 'Unknown Device';
 
                 return (
-                <View key={`${device.device_name}-${idx}`} style={{ padding: Spacing.md, flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border, opacity: device.is_current_session ? 1 : 0.6 }}>
-                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: device.is_current_session ? '#4ade80' : colors.muted }} />
+                <View key={`${d.device_id || d.id || idx}`} style={{ padding: Spacing.md, flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border, opacity: d.is_current_session ? 1 : 0.6 }}>
+                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: d.is_current_session || d.online ? '#4ade80' : colors.muted }} />
                   <View style={{ flex: 1 }}>
-                    <Text style={{ ...Typography.bodyLg, color: colors.ink, fontWeight: '600' }}>{device.device_name}</Text>
-                    <Text style={{ fontSize: 12, color: colors.muted }}>{device.is_current_session ? 'Current Session' : `Last active ${timeAgo}`}</Text>
+                    <Text style={{ ...Typography.bodyLg, color: colors.ink, fontWeight: '600' }}>{deviceName}</Text>
+                    <Text style={{ fontSize: 12, color: colors.muted }}>{d.is_current_session ? 'Current Session' : (timeAgo === 'Unknown' ? 'Status unknown' : `Last active ${timeAgo}`)}</Text>
                   </View>
-                  <Text style={{ fontSize: 20 }}>{(device.device_name ?? '').toLowerCase().includes('phone') || (device.device_name ?? '').toLowerCase().includes('ios') || (device.device_name ?? '').toLowerCase().includes('android') ? '📱' : '💻'}</Text>
+                  <Text style={{ fontSize: 20 }}>{deviceName.toLowerCase().includes('phone') || deviceName.toLowerCase().includes('ios') || deviceName.toLowerCase().includes('android') ? '📱' : '💻'}</Text>
                 </View>
               )})}
-              <Pressable onPress={() => router.push('/(tabs)/(dashboard)/devices')} style={{ padding: Spacing.sm, backgroundColor: '#0c0c0c', alignItems: 'center' }}>
+              <Pressable onPress={() => router.push('/(tabs)/(dashboard)/devices')} style={{ padding: Spacing.sm, backgroundColor: colors.surfaceSoft, alignItems: 'center' }}>
                 <Text style={{ ...Typography.labelCaps, color: colors.brandBlue }}>Manage Devices</Text>
               </Pressable>
             </View>

@@ -1,5 +1,6 @@
-import { ScrollView, View, Text, Alert } from 'react-native';
+import { ScrollView, View, Text, Alert, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as Notifications from 'expo-notifications';
 import { useTheme } from '@/hooks/use-theme';
 import { useAuthStore } from '@/store/auth-store';
 import { useSettingsStore } from '@/store/settings-store';
@@ -17,17 +18,38 @@ export default function SettingsScreen() {
   const { darkMode, notifications, clipboardAutoSync, setDarkMode, setNotifications, setClipboardAutoSync } = useSettingsStore();
 
   const handleLogout = () => {
-    Alert.alert('Sign out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign out',
-        style: 'destructive',
-        onPress: async () => {
-          await logout();
-          router.replace('/(auth)/login');
+    const doLogout = async () => {
+      await logout();
+      router.replace('/(auth)/login');
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to sign out?')) {
+        doLogout();
+      }
+    } else {
+      Alert.alert('Sign out', 'Are you sure you want to sign out?', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign out',
+          style: 'destructive',
+          onPress: doLogout,
         },
-      },
-    ]);
+      ]);
+    }
+  };
+
+  const handleNotificationsToggle = async (val: boolean) => {
+    setNotifications(val);
+    if (val) {
+      if (Platform.OS === 'web') {
+        if ('Notification' in window) {
+          await window.Notification.requestPermission();
+        }
+      } else {
+        await Notifications.requestPermissionsAsync();
+      }
+    }
   };
 
   return (
@@ -65,7 +87,7 @@ export default function SettingsScreen() {
             label="Notifications"
             type="toggle"
             value={notifications}
-            onValueChange={setNotifications}
+            onValueChange={handleNotificationsToggle}
           />
           <View style={{ height: 1, backgroundColor: colors.border }} />
           <PreferenceRow

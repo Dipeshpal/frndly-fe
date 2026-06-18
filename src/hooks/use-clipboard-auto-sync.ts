@@ -1,16 +1,18 @@
 import { Platform } from 'react-native';
 import { useEffect, useRef } from 'react';
 import * as Clipboard from 'expo-clipboard';
+import { useSettingsStore } from '@/store/settings-store';
 
 type PushFn = (content: string, callbacks?: { onSuccess?: () => void; onError?: () => void }) => void;
 
 export function useClipboardAutoSync(push: PushFn) {
   const isNative = Platform.OS === 'ios' || Platform.OS === 'android';
+  const clipboardAutoSync = useSettingsStore((s) => s.clipboardAutoSync);
   const lastPushed = useRef<string | null>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (!isNative) return;
+    if (!isNative || !clipboardAutoSync) return;
 
     const subscription = Clipboard.addClipboardListener(({ contentTypes }) => {
       if (!contentTypes.includes(Clipboard.ContentType.PLAIN_TEXT)) return;

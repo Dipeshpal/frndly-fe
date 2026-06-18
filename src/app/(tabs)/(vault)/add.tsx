@@ -81,7 +81,7 @@ export default function AddSecretScreen() {
     ...Typography.bodyLg,
     color: colors.ink,
     paddingVertical: 0,
-    outlineStyle: 'none' as const,
+    outlineStyle: 'none' as any,
   };
 
   return (
@@ -112,7 +112,7 @@ export default function AddSecretScreen() {
                     placeholder="e.g. Work, Personal, Project X"
                     placeholderTextColor={colors.muted}
                     autoCapitalize="words"
-                    style={{ ...inputStyle, flex: 1, paddingVertical: Spacing.sm }}
+                    style={[{ ...inputStyle, flex: 1, paddingVertical: Spacing.sm } as any]}
                   />
                 </View>
               )}
@@ -173,7 +173,7 @@ export default function AddSecretScreen() {
                     placeholder="e.g. OpenAI API Key"
                     placeholderTextColor={colors.muted}
                     autoCapitalize="words"
-                    style={{ ...inputStyle, paddingVertical: 4 }}
+                    style={[{ ...inputStyle, paddingVertical: 4 } as any]}
                   />
                 )}
               />
@@ -251,7 +251,7 @@ export default function AddSecretScreen() {
                       secureTextEntry={!valueRevealed}
                       autoCapitalize="none"
                       autoCorrect={false}
-                      style={{ ...inputStyle, flex: 1, fontFamily: 'monospace', paddingVertical: 4 }}
+                      style={[{ ...inputStyle, flex: 1, fontFamily: 'monospace', paddingVertical: 4 } as any]}
                     />
                   )}
                 />
@@ -286,7 +286,7 @@ export default function AddSecretScreen() {
                     placeholderTextColor={colors.muted}
                     multiline
                     numberOfLines={3}
-                    style={{ ...inputStyle, paddingVertical: 4, minHeight: 60 }}
+                    style={[{ ...inputStyle, paddingVertical: 4, minHeight: 60 } as any]}
                   />
                 )}
               />

@@ -17,7 +17,7 @@ export function getDeviceInfo(): DeviceInfo {
     deviceType = getBrowserType();
     deviceName = `${getBrowserType()} on ${getOSName()}`;
   } else {
-    deviceType = Device.deviceType || 'phone';
+    deviceType = String(Device.deviceType || 'phone');
     deviceName = Device.modelName || `${getOSName()} Device`;
   }
 

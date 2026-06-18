@@ -111,11 +111,11 @@ export default function ClipboardScreen() {
           <View style={{ gap: Spacing.sm, paddingHorizontal: Spacing.md, paddingTop: Spacing.sm }}>
             <Text style={{ ...Typography.headlineLgMobile, color: colors.ink }}>Push to devices</Text>
             <View style={{
-              backgroundColor: 'rgba(20,20,20,0.9)',
+              backgroundColor: colors.surfaceCard,
               borderRadius: 12,
               borderCurve: 'continuous',
               borderWidth: 1,
-              borderColor: '#262626',
+              borderColor: colors.border,
               padding: Spacing.md,
               gap: Spacing.md,
             }}>
@@ -126,7 +126,7 @@ export default function ClipboardScreen() {
                 placeholderTextColor={colors.muted}
                 multiline
                 numberOfLines={4}
-                style={{ ...Typography.bodyLg, color: colors.ink, minHeight: 80, textAlignVertical: 'top' }}
+                style={[{ ...Typography.bodyLg, color: colors.ink, minHeight: 80, textAlignVertical: 'top', outlineStyle: 'none' } as any]}
                 accessibilityLabel="Clipboard input"
               />
               <View style={{ flexDirection: 'row', gap: Spacing.sm, justifyContent: 'flex-end' }}>
@@ -150,11 +150,11 @@ export default function ClipboardScreen() {
                       flexDirection: 'row',
                       alignItems: 'center',
                       gap: Spacing.md,
-                      backgroundColor: 'rgba(20,20,20,0.9)',
+                      backgroundColor: colors.surfaceCard,
                       borderRadius: 12,
                       borderCurve: 'continuous',
                       borderWidth: 1,
-                      borderColor: '#262626',
+                      borderColor: colors.border,
                       padding: Spacing.md,
                     }}
                   >
@@ -185,7 +185,7 @@ export default function ClipboardScreen() {
                   paddingVertical: 5,
                   backgroundColor: groupByDevice ? `${colors.brandBlue}22` : 'transparent',
                   borderWidth: 1,
-                  borderColor: groupByDevice ? colors.brandBlue : '#262626',
+                  borderColor: groupByDevice ? colors.brandBlue : colors.border,
                   borderRadius: 999,
                 }}
               >
@@ -312,11 +312,11 @@ export default function ClipboardScreen() {
           return (
             <View style={{ paddingHorizontal: Spacing.md, paddingTop: Spacing.xs, paddingBottom: Spacing.xs }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
-                <View style={{ flex: 1, height: 1, backgroundColor: '#262626' }} />
+                <View style={{ flex: 1, height: 1, backgroundColor: colors.border }} />
                 <Text style={{ ...Typography.labelCaps, color: colors.muted, fontSize: 11 }}>
                   {item.displayName}
                 </Text>
-                <View style={{ flex: 1, height: 1, backgroundColor: '#262626' }} />
+                <View style={{ flex: 1, height: 1, backgroundColor: colors.border }} />
               </View>
             </View>
           );

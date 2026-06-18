@@ -22,7 +22,10 @@ export function SummaryCard({ title, value, icon, color, onPress, statusLabel, s
     <Pressable
       onPress={onPress}
       style={({ pressed, hovered }: any) => ({
-        flex: 1,
+        flexGrow: 1,
+        flexShrink: 1,
+        flexBasis: 150,
+        maxWidth: isWeb ? 350 : '48%',
         minWidth: 150,
         backgroundColor: colors.surfaceCard,
         borderRadius: 12,

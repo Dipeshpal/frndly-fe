@@ -119,13 +119,13 @@ export default function LoginScreen() {
           {/* Social */}
           <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
             <Pressable
-              style={({ pressed }) => ({ flex: 1, backgroundColor: 'transparent', borderWidth: 1, borderColor: '#262626', borderRadius: 12, paddingVertical: Spacing.sm, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.8 : 1 })}
+              style={({ pressed }) => ({ flex: 1, backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.hairline, borderRadius: 12, paddingVertical: Spacing.sm, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.8 : 1 })}
               accessibilityRole="button"
             >
               <Text style={{ ...Typography.bodySm, color: colors.ink }}>Google</Text>
             </Pressable>
             <Pressable
-              style={({ pressed }) => ({ flex: 1, backgroundColor: 'transparent', borderWidth: 1, borderColor: '#262626', borderRadius: 12, paddingVertical: Spacing.sm, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.8 : 1 })}
+              style={({ pressed }) => ({ flex: 1, backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.hairline, borderRadius: 12, paddingVertical: Spacing.sm, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.8 : 1 })}
               accessibilityRole="button"
             >
               <Text style={{ ...Typography.bodySm, color: colors.ink }}>Apple</Text>

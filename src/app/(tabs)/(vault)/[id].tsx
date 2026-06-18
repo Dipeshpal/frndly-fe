@@ -88,7 +88,7 @@ export default function EditSecretScreen() {
     ...Typography.bodyLg,
     color: colors.ink,
     paddingVertical: 0,
-    outlineStyle: 'none' as const,
+    outlineStyle: 'none' as any,
   };
 
   return (
@@ -119,7 +119,7 @@ export default function EditSecretScreen() {
                     placeholder="e.g. Work, Personal, Project X"
                     placeholderTextColor={colors.muted}
                     autoCapitalize="words"
-                    style={{ ...inputStyle, flex: 1, paddingVertical: Spacing.sm }}
+                    style={[{ ...inputStyle, flex: 1, paddingVertical: Spacing.sm } as any]}
                   />
                 </View>
               )}
@@ -177,7 +177,7 @@ export default function EditSecretScreen() {
                     onChangeText={onChange}
                     onBlur={onBlur}
                     placeholderTextColor={colors.muted}
-                    style={{ ...inputStyle, paddingVertical: 4 }}
+                    style={[{ ...inputStyle, paddingVertical: 4 } as any]}
                   />
                 )}
               />
@@ -247,7 +247,7 @@ export default function EditSecretScreen() {
                     placeholderTextColor={colors.muted}
                     multiline
                     numberOfLines={3}
-                    style={{ ...inputStyle, paddingVertical: 4, minHeight: 60 }}
+                    style={[{ ...inputStyle, paddingVertical: 4, minHeight: 60 } as any]}
                   />
                 )}
               />

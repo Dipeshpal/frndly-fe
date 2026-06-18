@@ -66,7 +66,7 @@ export default function AlertsScreen() {
       flexDirection: 'row', gap: Spacing.md,
       borderLeftWidth: alert.is_read ? 0 : 4, borderLeftColor: getColorForApp(alert.source_app)
     })}>
-      <View style={{ width: 48, height: 48, backgroundColor: '#0c0c0c', borderRadius: 8, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: 48, height: 48, backgroundColor: colors.surfaceSoft, borderRadius: 8, alignItems: 'center', justifyContent: 'center' }}>
         <MaterialIcons name={getIconForApp(alert.source_app)} size={24} color={getColorForApp(alert.source_app)} />
       </View>
       <View style={{ flex: 1 }}>
@@ -111,8 +111,8 @@ export default function AlertsScreen() {
           <TextInput 
             placeholder="Search notification history..."
             placeholderTextColor={colors.muted}
-            style={{
-              backgroundColor: '#0c0c0c',
+            style={[{
+              backgroundColor: colors.surfaceCard,
               borderWidth: 1,
               borderColor: colors.border,
               borderRadius: 12,
@@ -120,8 +120,9 @@ export default function AlertsScreen() {
               paddingLeft: 48,
               paddingRight: 16,
               color: colors.ink,
+              outlineStyle: 'none',
               ...Typography.bodyLg,
-            }}
+            } as any]}
           />
         </View>
 
