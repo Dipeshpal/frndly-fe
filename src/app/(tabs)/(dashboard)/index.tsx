@@ -113,14 +113,14 @@ export default function DashboardScreen() {
           <View style={{ gap: Spacing.md }}>
             <Text style={{ ...Typography.headlineLgMobile, color: colors.ink }}>Active Devices</Text>
             <View style={{ backgroundColor: colors.surfaceCard, borderWidth: 1, borderColor: colors.border, borderRadius: 12, overflow: 'hidden' }}>
-              {devices?.map((device) => {
+              {devices?.map((device, idx) => {
                 const date = new Date(device.last_active);
                 const now = new Date();
                 const diffMins = Math.floor((now.getTime() - date.getTime()) / 60000);
                 const timeAgo = diffMins < 60 ? `${diffMins}m ago` : diffMins < 1440 ? `${Math.floor(diffMins/60)}h ago` : `${Math.floor(diffMins/1440)}d ago`;
 
                 return (
-                <View key={device.id} style={{ padding: Spacing.md, flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border, opacity: device.is_current_session ? 1 : 0.6 }}>
+                <View key={`${device.device_name}-${idx}`} style={{ padding: Spacing.md, flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border, opacity: device.is_current_session ? 1 : 0.6 }}>
                   <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: device.is_current_session ? '#4ade80' : colors.muted }} />
                   <View style={{ flex: 1 }}>
                     <Text style={{ ...Typography.bodyLg, color: colors.ink, fontWeight: '600' }}>{device.device_name}</Text>
