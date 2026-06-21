@@ -27,8 +27,8 @@ export function useGoogleLogin() {
         setError('Google sign-in did not return an ID token.');
         return;
       }
-      setLoading(true);
       setError(null);
+      setLoading(true);
       googleLogin(idToken)
         .catch((e) => setError(extractErrorMessage(e)))
         .finally(() => setLoading(false));
@@ -38,7 +38,6 @@ export function useGoogleLogin() {
   }, [response, googleLogin]);
 
   const trigger = () => {
-    setError(null);
     promptAsync();
   };
 
