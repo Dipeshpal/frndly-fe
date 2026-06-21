@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, Pressable, ScrollView, Platform } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import Animated, { useAnimatedStyle, withTiming, withSpring, FadeIn, ZoomIn, ZoomOut } from 'react-native-reanimated';
@@ -255,9 +256,23 @@ export default function WebLayout() {
   const segments = useSegments();
   const user = useAuthStore((s) => s.user);
   const { isDesktop, isMobile } = useBreakpoint();
-  const collapsed = useUIStore((s) => s.sidebarCollapsed) || (!isDesktop && !isMobile);
+  const sidebarCollapsed = useUIStore((s) => s.sidebarCollapsed);
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
   const [toggleHover, setToggleHover] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
+
+  useEffect(() => {
+    if (!hasInitialized) {
+      if (!isDesktop && !isMobile) {
+        if (!sidebarCollapsed) {
+          toggleSidebar();
+        }
+      }
+      setHasInitialized(true);
+    }
+  }, [isDesktop, isMobile, hasInitialized]);
+
+  const collapsed = sidebarCollapsed;
 
   const activeSegment = segments.find((s) => s.startsWith('(') && s !== '(tabs)') ?? '(dashboard)';
   const activeItem = NAV_ITEMS.find((i) => i.segment === activeSegment) ?? NAV_ITEMS[0];
@@ -304,36 +319,19 @@ export default function WebLayout() {
                   width: 32, 
                   height: 32, 
                   borderRadius: 16,
-                  backgroundColor: toggleHover ? colors.surfaceCard : 'transparent',
+                  backgroundColor: toggleHover ? colors.surfaceStrong : colors.surfaceCard,
                   borderWidth: 1,
-                  borderColor: toggleHover ? colors.hairline : 'transparent',
+                  borderColor: toggleHover ? colors.brandBlue : colors.hairline,
                   alignItems: 'center',
                   justifyContent: 'center',
+                  cursor: 'pointer',
                 }}
               >
-                {Platform.OS === 'web' ? (
-                  <svg 
-                    width="16" 
-                    height="16" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke={toggleHover ? colors.ink : colors.muted} 
-                    strokeWidth="2.5" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                    style={{ transition: 'stroke 0.2s ease' }}
-                  >
-                    {collapsed ? (
-                      <path d="M9 18l6-6-6-6" />
-                    ) : (
-                      <path d="M15 18l-6-6 6-6" />
-                    )}
-                  </svg>
-                ) : (
-                  <Text style={{ ...Typography.bodySm, color: colors.muted }}>
-                    {collapsed ? '→' : '←'}
-                  </Text>
-                )}
+                <MaterialIcons 
+                  name={collapsed ? "chevron-right" : "chevron-left"} 
+                  size={20} 
+                  color={toggleHover ? colors.brandBlue : colors.ink} 
+                />
               </Pressable>
             </View>
 

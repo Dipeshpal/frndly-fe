@@ -9,6 +9,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { useSignup } from '@/features/auth/hooks/use-signup';
 import { FormField } from '@/components/forms/form-field';
 import { Button } from '@/components/ui/button';
+import { GoogleSignInButton } from '@/features/auth/components/google-sign-in-button';
 import { Spacing } from '@/theme/spacing';
 import { Typography } from '@/theme/typography';
 import type { SignupInput } from '@/types/auth.types';
@@ -138,6 +139,12 @@ export default function SignupScreen() {
             fullWidth
             size="lg"
           />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+            <View style={{ flex: 1, height: 1, backgroundColor: colors.hairline }} />
+            <Text style={{ ...Typography.bodySm, color: colors.muted }}>or</Text>
+            <View style={{ flex: 1, height: 1, backgroundColor: colors.hairline }} />
+          </View>
+          <GoogleSignInButton />
           <Text style={{ ...Typography.bodySm, color: colors.body, textAlign: 'center' }}>
             Already have an account?{' '}
             <Text style={{ ...Typography.bodySm, color: colors.brandBlue, fontWeight: '600' }} onPress={() => router.back()}>

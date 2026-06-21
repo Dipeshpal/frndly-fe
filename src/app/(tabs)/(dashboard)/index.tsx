@@ -94,12 +94,6 @@ export default function DashboardScreen() {
           icon={isWeb ? '📋' : 'content_paste'} 
           color={colors.brandLavender} 
         />
-        <SummaryCard 
-          title="Daily Vault Items" 
-          value={stats?.daily_vault_items_count ?? 0} 
-          icon={isWeb ? '🔐' : 'lock'} 
-          color="#4ade80" 
-        />
       </View>
 
       {/* Two Column Layout for Desktop, Stacked for Mobile */}
