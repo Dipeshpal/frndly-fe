@@ -257,6 +257,7 @@ export default function WebLayout() {
   const { isDesktop, isMobile } = useBreakpoint();
   const collapsed = useUIStore((s) => s.sidebarCollapsed) || (!isDesktop && !isMobile);
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
+  const [toggleHover, setToggleHover] = useState(false);
 
   const activeSegment = segments.find((s) => s.startsWith('(') && s !== '(tabs)') ?? '(dashboard)';
   const activeItem = NAV_ITEMS.find((i) => i.segment === activeSegment) ?? NAV_ITEMS[0];
@@ -283,13 +284,57 @@ export default function WebLayout() {
         >
           <View style={{ gap: Spacing.lg }}>
             {/* Logo + collapse */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: collapsed ? 'center' : 'space-between', paddingHorizontal: collapsed ? 0 : Spacing.xs }}>
+            <View 
+              style={{ 
+                flexDirection: 'row', 
+                alignItems: 'center', 
+                justifyContent: collapsed ? 'center' : 'space-between', 
+                paddingHorizontal: collapsed ? 0 : Spacing.xs,
+                height: 40,
+              }}
+            >
               {!collapsed && <Text style={{ ...Typography.titleLg, color: colors.ink }}>Frndly</Text>}
-              {!collapsed && (
-                <Pressable onPress={toggleSidebar} accessibilityRole="button" accessibilityLabel="Toggle sidebar" style={{ padding: Spacing.xs }}>
-                  <Text style={{ ...Typography.bodySm, color: colors.muted }}>←</Text>
-                </Pressable>
-              )}
+              <Pressable 
+                onPress={toggleSidebar} 
+                onHoverIn={() => setToggleHover(true)}
+                onHoverOut={() => setToggleHover(false)}
+                accessibilityRole="button" 
+                accessibilityLabel={collapsed ? "Expand sidebar" : "Collapse sidebar"} 
+                style={{ 
+                  width: 32, 
+                  height: 32, 
+                  borderRadius: 16,
+                  backgroundColor: toggleHover ? colors.surfaceCard : 'transparent',
+                  borderWidth: 1,
+                  borderColor: toggleHover ? colors.hairline : 'transparent',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {Platform.OS === 'web' ? (
+                  <svg 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke={toggleHover ? colors.ink : colors.muted} 
+                    strokeWidth="2.5" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                    style={{ transition: 'stroke 0.2s ease' }}
+                  >
+                    {collapsed ? (
+                      <path d="M9 18l6-6-6-6" />
+                    ) : (
+                      <path d="M15 18l-6-6 6-6" />
+                    )}
+                  </svg>
+                ) : (
+                  <Text style={{ ...Typography.bodySm, color: colors.muted }}>
+                    {collapsed ? '→' : '←'}
+                  </Text>
+                )}
+              </Pressable>
             </View>
 
             {/* Nav */}
