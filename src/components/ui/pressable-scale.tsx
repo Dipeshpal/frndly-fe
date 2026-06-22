@@ -1,7 +1,7 @@
+import { useRef } from 'react';
 import type { ReactNode } from 'react';
 import type { ViewStyle } from 'react-native';
-import { Platform, Pressable } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import { Animated, Platform, Pressable } from 'react-native';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 const isWeb = Platform.OS === 'web';
@@ -18,10 +18,6 @@ interface PressableScaleProps {
   accessibilityLabel?: string;
 }
 
-/**
- * Pressable with spring scale feedback. On web also lifts on hover.
- * Animates transform only (UI thread, GPU-friendly).
- */
 export function PressableScale({
   children,
   onPress,
@@ -31,11 +27,10 @@ export function PressableScale({
   disabled,
   accessibilityLabel,
 }: PressableScaleProps) {
-  const scale = useSharedValue(1);
+  const scale = useRef(new Animated.Value(1)).current;
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: withSpring(scale.value, { damping: 15, stiffness: 220 }) }],
-  }));
+  const springTo = (toValue: number) =>
+    Animated.spring(scale, { toValue, damping: 15, stiffness: 220, useNativeDriver: true }).start();
 
   return (
     <AnimatedPressable
@@ -43,15 +38,15 @@ export function PressableScale({
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      onPressIn={() => { scale.value = pressedScale; }}
-      onPressOut={() => { scale.value = 1; }}
+      onPressIn={() => springTo(pressedScale)}
+      onPressOut={() => springTo(1)}
       {...(isWeb
         ? {
-            onHoverIn: () => { scale.value = hoverScale; },
-            onHoverOut: () => { scale.value = 1; },
+            onHoverIn: () => springTo(hoverScale),
+            onHoverOut: () => springTo(1),
           }
         : {})}
-      style={[style, animatedStyle]}
+      style={[style, { transform: [{ scale }] }]}
     >
       {children}
     </AnimatedPressable>

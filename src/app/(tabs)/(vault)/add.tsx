@@ -219,6 +219,8 @@ export default function AddSecretScreen() {
       <Stack.Screen options={{ title: 'Add Secret' }} />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
+        showsVerticalScrollIndicator={false}
+        style={{ scrollbarWidth: 'none' } as any}
         contentContainerStyle={{ gap: Spacing.lg, padding: Spacing.md, paddingBottom: Spacing.xxl * 2 }}
         keyboardShouldPersistTaps="handled"
       >

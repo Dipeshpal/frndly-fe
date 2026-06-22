@@ -2,7 +2,7 @@ import { apiClient } from './client';
 import type { ClipboardItem, CreateClipboardInput, ClipboardListResponse } from '@/types/clipboard.types';
 
 export const clipboardApi = {
-  list: (params?: { page?: number; per_page?: number; search?: string }) =>
+  list: (params?: { page?: number; per_page?: number; search?: string; date?: string }) =>
     apiClient.get<ClipboardListResponse>('/clipboard', { params }).then((r) => r.data),
 
   create: (data: CreateClipboardInput) =>

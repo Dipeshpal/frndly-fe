@@ -1,6 +1,5 @@
-import { useEffect } from 'react';
-import { View } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing } from 'react-native-reanimated';
+import { useRef, useEffect } from 'react';
+import { View, Animated, Easing } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
 
 interface SpinnerProps {
@@ -8,19 +7,20 @@ interface SpinnerProps {
   color?: string;
 }
 
-/** Rotating ring spinner (rotation transform — GPU-friendly). */
 export function Spinner({ size = 24, color }: SpinnerProps) {
   const { colors } = useTheme();
-  const rotation = useSharedValue(0);
+  const rotation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    rotation.value = withRepeat(withTiming(360, { duration: 900, easing: Easing.linear }), -1, false);
-  }, [rotation]);
+    Animated.loop(
+      Animated.timing(rotation, { toValue: 1, duration: 900, easing: Easing.linear, useNativeDriver: true })
+    ).start();
+  }, []);
 
-  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${rotation.value}deg` }] }));
+  const rotate = rotation.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
 
   return (
-    <Animated.View style={animatedStyle}>
+    <Animated.View style={{ transform: [{ rotate }] }}>
       <View
         style={{
           width: size,

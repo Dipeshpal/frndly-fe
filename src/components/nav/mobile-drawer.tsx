@@ -1,7 +1,7 @@
-import { View, Text, Pressable } from 'react-native';
+import { useState, useEffect, useRef } from 'react';
+import { View, Text, Pressable, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
-import Animated, { SlideInLeft, SlideOutLeft, FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/use-theme';
 import { useUIStore } from '@/store/ui-store';
@@ -11,7 +11,8 @@ import { NAV_ITEMS } from '@/components/nav/nav-config';
 import { Spacing, Radius } from '@/theme/spacing';
 import { Typography } from '@/theme/typography';
 
-/** Native slide-in drawer overlay. Rendered at root; visible only when ui-store.drawerOpen. */
+const PANEL_WIDTH = 280;
+
 export function MobileDrawer() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -21,7 +22,32 @@ export function MobileDrawer() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
 
-  if (!open) return null;
+  const [mounted, setMounted] = useState(false);
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
+  const panelX = useRef(new Animated.Value(-PANEL_WIDTH)).current;
+
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!mounted) return;
+    if (open) {
+      Animated.parallel([
+        Animated.timing(backdropOpacity, { toValue: 1, duration: 180, useNativeDriver: true }),
+        Animated.spring(panelX, { toValue: 0, damping: 20, useNativeDriver: true }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(backdropOpacity, { toValue: 0, duration: 180, useNativeDriver: true }),
+        Animated.timing(panelX, { toValue: -PANEL_WIDTH, duration: 200, useNativeDriver: true }),
+      ]).start(() => setMounted(false));
+    }
+  }, [open, mounted]);
+
+  if (!mounted) return null;
 
   const go = (route: Parameters<typeof router.push>[0]) => {
     close();
@@ -31,16 +57,15 @@ export function MobileDrawer() {
   return (
     <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000 }}>
       {/* Backdrop */}
-      <Animated.View entering={FadeIn.duration(180)} exiting={FadeOut.duration(180)} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+      <Animated.View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: backdropOpacity }}>
         <Pressable onPress={close} accessibilityRole="button" accessibilityLabel="Close menu" style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }} />
       </Animated.View>
 
       {/* Panel */}
       <Animated.View
-        entering={SlideInLeft.springify().damping(20)}
-        exiting={SlideOutLeft.duration(200)}
         style={{
-          width: 280,
+          transform: [{ translateX: panelX }],
+          width: PANEL_WIDTH,
           height: '100%',
           backgroundColor: colors.surfaceSoft,
           borderRightWidth: 1,

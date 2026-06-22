@@ -1,10 +1,17 @@
-import { PropsWithChildren, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { PropsWithChildren, useState, useRef, useEffect } from 'react';
+import { Pressable, View, Animated } from 'react-native';
 import { Image } from 'expo-image';
-import Animated, { FadeIn } from 'react-native-reanimated';
 import { ThemedText } from '@/components/themed-text';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing } from '@/theme/spacing';
+
+function FadeInView({ children, style }: { children: React.ReactNode; style?: object }) {
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(anim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+  }, []);
+  return <Animated.View style={[style, { opacity: anim }]}>{children}</Animated.View>;
+}
 
 export function Collapsible({ children, title }: PropsWithChildren & { title: string }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,9 +31,9 @@ export function Collapsible({ children, title }: PropsWithChildren & { title: st
         <ThemedText type="small">{title}</ThemedText>
       </Pressable>
       {isOpen && (
-        <Animated.View entering={FadeIn.duration(200)} style={{ marginTop: Spacing.xs, marginLeft: Spacing.md }}>
+        <FadeInView style={{ marginTop: Spacing.xs, marginLeft: Spacing.md }}>
           {children}
-        </Animated.View>
+        </FadeInView>
       )}
     </View>
   );

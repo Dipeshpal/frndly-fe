@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
-import { Platform, View, Text, TextInput, FlatList, Alert, Pressable, ScrollView } from 'react-native';
+import { Platform, View, Text, TextInput, FlatList, Alert, Pressable, ScrollView, ActivityIndicator } from 'react-native';
+import { DatePickerPopover } from '@/components/ui/date-picker-popover';
 import * as Clipboard from 'expo-clipboard';
 import { useTheme } from '@/hooks/use-theme';
-import { useClipboardList, usePushClipboard, useDeleteClipboardItem } from '@/features/clipboard/hooks/use-clipboard';
+import { useInfiniteClipboardList, usePushClipboard, useDeleteClipboardItem } from '@/features/clipboard/hooks/use-clipboard';
 import { useDeviceRegistry, useConnectedDevices } from '@/features/clipboard/hooks/use-devices';
 import { useClipboardAutoSync } from '@/hooks/use-clipboard-auto-sync';
 import { ClipboardItemCard } from '@/features/clipboard/components/clipboard-item';
@@ -14,11 +15,33 @@ import { Spacing } from '@/theme/spacing';
 import { Typography } from '@/theme/typography';
 import type { ClipboardItem } from '@/types/clipboard.types';
 
-type DateFilter = 'all' | 'today' | 'yesterday' | 'week' | 'older';
-
 type FlatItem =
   | { type: 'item'; data: ClipboardItem }
   | { type: 'header'; deviceId: string; displayName: string };
+
+// ── Date helpers ──────────────────────────────────────────────────────────────
+
+function toDateString(d: Date): string {
+  return d.toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+function offsetDate(base: Date, days: number): Date {
+  const d = new Date(base);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function formatDateLabel(dateStr: string | null): string {
+  if (!dateStr) return 'All Time';
+  const today = toDateString(new Date());
+  const yesterday = toDateString(offsetDate(new Date(), -1));
+  if (dateStr === today) return 'Today';
+  if (dateStr === yesterday) return 'Yesterday';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export default function ClipboardScreen() {
   const { colors } = useTheme();
@@ -26,22 +49,29 @@ export default function ClipboardScreen() {
   const [inputText, setInputText] = useState('');
   const [groupByDevice, setGroupByDevice] = useState(false);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
-  const [dateFilter, setDateFilter] = useState<DateFilter>('all');
+  // null = all time, string = YYYY-MM-DD
+  const [selectedDate, setSelectedDate] = useState<string | null>(toDateString(new Date()));
   const isWeb = Platform.OS === 'web';
 
   useDeviceRegistry();
   const { data: devices, isLoading: devicesLoading } = useConnectedDevices();
-  const { data, isLoading } = useClipboardList(search || undefined);
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteClipboardList({ search: search || undefined, date: selectedDate ?? undefined });
   const { push, loading: pushing } = usePushClipboard();
   const { mutate: deleteItem } = useDeleteClipboardItem();
 
   useClipboardAutoSync(push);
 
+  const allItems = data?.pages.flatMap((p) => p.items) ?? [];
+
   const deviceNameMap: Record<string, string> = {};
   if (devices) {
-    for (const d of devices) {
-      deviceNameMap[d.device_id] = d.name;
-    }
+    for (const d of devices) deviceNameMap[d.device_id] = d.name;
   }
 
   const handlePaste = useCallback(async () => {
@@ -64,24 +94,26 @@ export default function ClipboardScreen() {
     ]);
   }, [deleteItem]);
 
-  const items = data?.items ?? [];
+  const goToPrevDay = () => {
+    const base = selectedDate ? new Date(selectedDate) : new Date();
+    setSelectedDate(toDateString(offsetDate(base, -1)));
+  };
 
-  // Apply device and date filters
-  const filteredItems = items.filter((item) => {
-    if (selectedDeviceId && item.device_name !== selectedDeviceId) return false;
-    if (dateFilter !== 'all') {
-      const d = new Date(item.created_at);
-      const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const yesterdayStart = new Date(todayStart.getTime() - 86_400_000);
-      const weekAgo = new Date(now.getTime() - 7 * 86_400_000);
-      if (dateFilter === 'today' && d < todayStart) return false;
-      if (dateFilter === 'yesterday' && (d >= todayStart || d < yesterdayStart)) return false;
-      if (dateFilter === 'week' && d < weekAgo) return false;
-      if (dateFilter === 'older' && d >= weekAgo) return false;
-    }
-    return true;
-  });
+  const goToNextDay = () => {
+    const base = selectedDate ? new Date(selectedDate) : new Date();
+    const next = offsetDate(base, 1);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (next <= today) setSelectedDate(toDateString(next));
+  };
+
+  const isNextDisabled = selectedDate === toDateString(new Date()) || selectedDate === null;
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  // Apply device filter client-side
+  const filteredItems = allItems.filter((item) =>
+    selectedDeviceId ? item.device_name === selectedDeviceId : true
+  );
 
   let flatData: FlatItem[];
   if (groupByDevice && filteredItems.length > 0) {
@@ -98,6 +130,7 @@ export default function ClipboardScreen() {
   }
 
   return (
+    <View style={{ flex: 1 }}>
     <FlatList<FlatItem>
       contentInsetAdjustmentBehavior="automatic"
       data={flatData}
@@ -161,7 +194,7 @@ export default function ClipboardScreen() {
                     <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: device.online ? '#22c55e' : colors.muted }} />
                     <View style={{ flex: 1 }}>
                       <Text style={{ ...Typography.bodyLg, color: colors.ink }}>{device.name}</Text>
-                      <Text style={{ ...Typography.bodySm, color: colors.muted }}>{new Date(device.last_seen).toLocaleString()}</Text>
+                      <Text style={{ ...Typography.bodySm, color: colors.muted }}>{device.last_seen ? new Date(device.last_seen).toLocaleString() : 'Never'}</Text>
                     </View>
                     <Text style={{ fontSize: 18 }}>
                       {device.os_type === 'ios' ? '📱' : device.os_type === 'android' ? '🤖' : '💻'}
@@ -172,6 +205,117 @@ export default function ClipboardScreen() {
                 <Text style={{ ...Typography.bodySm, color: colors.muted, textAlign: 'center', paddingVertical: Spacing.md }}>No devices connected</Text>
               )}
             </View>
+          </View>
+
+          {/* ── Date Navigation Bar ────────────────────────────── */}
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: Spacing.md,
+            gap: Spacing.sm,
+          }}>
+            {/* All Time toggle */}
+            <Pressable
+              onPress={() => setSelectedDate(null)}
+              style={({ pressed, hovered }: any) => ({
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 9999,
+                borderWidth: 1,
+                backgroundColor: selectedDate === null
+                  ? colors.brandBlue
+                  : hovered ? colors.surfaceSoft : colors.surfaceCard,
+                borderColor: selectedDate === null ? colors.brandBlue : colors.border,
+                opacity: pressed ? 0.8 : 1,
+              })}
+            >
+              <Text style={{ ...Typography.labelCaps, fontSize: 11, color: selectedDate === null ? '#fff' : colors.muted }}>
+                All
+              </Text>
+            </Pressable>
+
+            {/* Prev day */}
+            <Pressable
+              onPress={goToPrevDay}
+              hitSlop={8}
+              style={({ pressed }: any) => ({
+                width: 32, height: 32,
+                borderRadius: 16,
+                borderWidth: 1,
+                borderColor: colors.border,
+                backgroundColor: colors.surfaceCard,
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: pressed ? 0.6 : 1,
+              })}
+            >
+              <Text style={{ color: colors.ink, fontSize: 14 }}>‹</Text>
+            </Pressable>
+
+            {/* Date display — label only, no click handler */}
+            <View style={{ flex: 1 }}>
+              <View
+                style={{
+                  paddingVertical: 9,
+                  paddingHorizontal: Spacing.md,
+                  borderRadius: 9999,
+                  borderWidth: 1,
+                  borderColor: selectedDate !== null ? colors.brandBlue : colors.border,
+                  backgroundColor: selectedDate !== null ? `${colors.brandBlue}18` : colors.surfaceCard,
+                  alignItems: 'center',
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                }}
+              >
+                <Text style={{ ...Typography.bodySm, color: selectedDate !== null ? colors.brandBlue : colors.muted, fontWeight: '600' }}>
+                  {formatDateLabel(selectedDate)}
+                </Text>
+              </View>
+            </View>
+
+            {/* Next day */}
+            <Pressable
+              onPress={goToNextDay}
+              disabled={isNextDisabled}
+              hitSlop={8}
+              style={({ pressed }: any) => ({
+                width: 32, height: 32,
+                borderRadius: 16,
+                borderWidth: 1,
+                borderColor: colors.border,
+                backgroundColor: colors.surfaceCard,
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: isNextDisabled ? 0.3 : pressed ? 0.6 : 1,
+              })}
+            >
+              <Text style={{ color: colors.ink, fontSize: 14 }}>›</Text>
+            </Pressable>
+
+            {/* Calendar picker button */}
+            <Pressable
+              onPress={() => setShowDatePicker(true)}
+              style={({ pressed, hovered }: any) => ({
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 6,
+                paddingHorizontal: Spacing.sm,
+                paddingVertical: 8,
+                borderRadius: 9999,
+                borderWidth: 1,
+                borderColor: showDatePicker ? colors.brandBlue : colors.border,
+                backgroundColor: showDatePicker
+                  ? `${colors.brandBlue}18`
+                  : pressed || hovered ? colors.surfaceStrong : colors.surfaceCard,
+              })}
+            >
+              <Text style={{ fontSize: 15 }}>📅</Text>
+              <Text style={{ ...Typography.bodySm, color: colors.ink, fontWeight: '500' }}>
+                {selectedDate
+                  ? new Date(selectedDate + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+                  : 'Pick date'}
+              </Text>
+            </Pressable>
           </View>
 
           {/* Clipboard History header + controls */}
@@ -194,6 +338,7 @@ export default function ClipboardScreen() {
                 </Text>
               </Pressable>
             </View>
+
             {!isWeb && (
               <View style={{ paddingHorizontal: Spacing.md }}>
                 <SearchBar value={search} onChangeText={setSearch} placeholder="Search history…" />
@@ -210,48 +355,31 @@ export default function ClipboardScreen() {
                 <Pressable
                   onPress={() => setSelectedDeviceId(null)}
                   style={{
-                    paddingHorizontal: 16,
-                    paddingVertical: 8,
+                    paddingHorizontal: 16, paddingVertical: 8,
                     backgroundColor: selectedDeviceId === null ? colors.brandBlue : colors.surfaceCard,
                     borderWidth: 1,
                     borderColor: selectedDeviceId === null ? colors.brandBlue : colors.border,
                     borderRadius: 9999,
                   }}
                 >
-                  <Text
-                    style={{
-                      ...Typography.labelCaps,
-                      fontSize: 11,
-                      color: selectedDeviceId === null ? '#ffffff' : colors.muted,
-                    }}
-                  >
+                  <Text style={{ ...Typography.labelCaps, fontSize: 11, color: selectedDeviceId === null ? '#ffffff' : colors.muted }}>
                     All
                   </Text>
                 </Pressable>
-
                 {devices.map((device) => (
                   <Pressable
                     key={device.device_id}
                     onPress={() => setSelectedDeviceId(device.device_id)}
                     style={{
-                      paddingHorizontal: 16,
-                      paddingVertical: 8,
+                      paddingHorizontal: 16, paddingVertical: 8,
                       backgroundColor: selectedDeviceId === device.device_id ? colors.brandBlue : colors.surfaceCard,
                       borderWidth: 1,
                       borderColor: selectedDeviceId === device.device_id ? colors.brandBlue : colors.border,
                       borderRadius: 9999,
-                      flexDirection: 'row',
-                      gap: Spacing.xs,
-                      alignItems: 'center',
+                      flexDirection: 'row', gap: Spacing.xs, alignItems: 'center',
                     }}
                   >
-                    <Text
-                      style={{
-                        ...Typography.labelCaps,
-                        fontSize: 11,
-                        color: selectedDeviceId === device.device_id ? '#ffffff' : colors.muted,
-                      }}
-                    >
+                    <Text style={{ ...Typography.labelCaps, fontSize: 11, color: selectedDeviceId === device.device_id ? '#ffffff' : colors.muted }}>
                       {device.name}
                     </Text>
                     <Text style={{ fontSize: 12 }}>
@@ -261,47 +389,6 @@ export default function ClipboardScreen() {
                 ))}
               </ScrollView>
             )}
-
-            {/* Date Filter Pills */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: Spacing.md, gap: Spacing.sm }}
-            >
-              {(['all', 'today', 'yesterday', 'week', 'older'] as const).map((filter) => {
-                const labels: Record<DateFilter, string> = {
-                  all: 'All',
-                  today: 'Today',
-                  yesterday: 'Yesterday',
-                  week: 'This Week',
-                  older: 'Older',
-                };
-                return (
-                  <Pressable
-                    key={filter}
-                    onPress={() => setDateFilter(filter)}
-                    style={{
-                      paddingHorizontal: 16,
-                      paddingVertical: 8,
-                      backgroundColor: dateFilter === filter ? colors.brandBlue : colors.surfaceCard,
-                      borderWidth: 1,
-                      borderColor: dateFilter === filter ? colors.brandBlue : colors.border,
-                      borderRadius: 9999,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        ...Typography.labelCaps,
-                        fontSize: 11,
-                        color: dateFilter === filter ? '#ffffff' : colors.muted,
-                      }}
-                    >
-                      {labels[filter]}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
 
             {isLoading && <LoadingState message="Loading clipboard history…" style={{ paddingVertical: Spacing.xl }} />}
           </View>
@@ -313,9 +400,7 @@ export default function ClipboardScreen() {
             <View style={{ paddingHorizontal: Spacing.md, paddingTop: Spacing.xs, paddingBottom: Spacing.xs }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
                 <View style={{ flex: 1, height: 1, backgroundColor: colors.border }} />
-                <Text style={{ ...Typography.labelCaps, color: colors.muted, fontSize: 11 }}>
-                  {item.displayName}
-                </Text>
+                <Text style={{ ...Typography.labelCaps, color: colors.muted, fontSize: 11 }}>{item.displayName}</Text>
                 <View style={{ flex: 1, height: 1, backgroundColor: colors.border }} />
               </View>
             </View>
@@ -333,10 +418,47 @@ export default function ClipboardScreen() {
           <EmptyState
             icon="doc.on.clipboard"
             title="No clipboard history"
-            description="Content you sync will appear here across all your devices."
+            description={selectedDate ? `Nothing synced on ${formatDateLabel(selectedDate)}.` : 'Content you sync will appear here across all your devices.'}
           />
         ) : null
       }
+      ListFooterComponent={
+        hasNextPage ? (
+          <View style={{ paddingHorizontal: Spacing.md, paddingVertical: Spacing.md }}>
+            <Pressable
+              onPress={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+              style={({ pressed, hovered }: any) => ({
+                paddingVertical: Spacing.sm,
+                borderRadius: 9999,
+                borderWidth: 1,
+                borderColor: colors.border,
+                backgroundColor: hovered ? colors.surfaceSoft : colors.surfaceCard,
+                alignItems: 'center',
+                opacity: pressed || isFetchingNextPage ? 0.7 : 1,
+                flexDirection: 'row',
+                justifyContent: 'center',
+                gap: Spacing.sm,
+              })}
+            >
+              {isFetchingNextPage
+                ? <ActivityIndicator size="small" color={colors.muted} />
+                : null}
+              <Text style={{ ...Typography.bodySm, color: colors.muted }}>
+                {isFetchingNextPage ? 'Loading…' : 'Load more'}
+              </Text>
+            </Pressable>
+          </View>
+        ) : null
+      }
     />
+    <DatePickerPopover
+      visible={showDatePicker}
+      value={selectedDate}
+      max={toDateString(new Date())}
+      onChange={(d) => setSelectedDate(d)}
+      onClose={() => setShowDatePicker(false)}
+    />
+    </View>
   );
 }

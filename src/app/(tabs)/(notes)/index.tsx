@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react';
 import { View, FlatList, Pressable, Alert, Text, Platform, TextInput } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import { FadeIn as FadeInDown } from '@/components/motion/fade-in';
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { useTheme } from '@/hooks/use-theme';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { useNoteList, useDeleteNote, useUpdateNote } from '@/features/notes/hooks/use-notes';
+import { useFolders } from '@/features/notes/hooks/use-folders';
 import { NoteCard } from '@/features/notes/components/note-card';
 import { FolderTree } from '@/features/notes/components/folder-tree';
 import { EmptyState } from '@/components/feedback/empty-state';
@@ -35,6 +36,7 @@ export default function NotesScreen() {
   );
   const { mutate: deleteNote } = useDeleteNote();
   const { mutate: updateNote } = useUpdateNote();
+  const { data: folders = [] } = useFolders();
 
   const allTags = [...new Set((data?.items ?? []).flatMap((n) => n.tags))];
 
@@ -144,11 +146,14 @@ export default function NotesScreen() {
           {isLoading && <LoadingState message="Loading notes…" style={{ paddingVertical: Spacing.xl }} />}
         </View>
       }
-      renderItem={({ item, index }) => (
-        <Animated.View entering={FadeInDown.delay(index * 40).springify().damping(18)}>
-          <NoteCard note={item} onPress={handlePress} onDelete={handleDelete} onPin={handlePin} />
-        </Animated.View>
-      )}
+      renderItem={({ item, index }) => {
+        const folderName = folders.find((f) => f.id === item.folder_id)?.name;
+        return (
+          <FadeInDown index={index} step={40}>
+            <NoteCard note={item} folderName={folderName} onPress={handlePress} onDelete={handleDelete} onPin={handlePin} />
+          </FadeInDown>
+        );
+      }}
       ItemSeparatorComponent={() => <View style={{ height: Spacing.xs }} />}
       ListEmptyComponent={
         !isLoading ? (
@@ -269,11 +274,14 @@ export default function NotesScreen() {
             {isLoading && <LoadingState message="Loading notes…" style={{ paddingVertical: Spacing.xl }} />}
           </View>
         }
-        renderItem={({ item, index }) => (
-          <Animated.View entering={FadeInDown.delay(index * 40).springify().damping(18)} style={{ paddingHorizontal: Spacing.md }}>
-            <NoteCard note={item} onPress={handlePress} onDelete={handleDelete} onPin={handlePin} />
-          </Animated.View>
-        )}
+        renderItem={({ item, index }) => {
+          const folderName = folders.find((f) => f.id === item.folder_id)?.name;
+          return (
+            <FadeInDown index={index} step={40} style={{ paddingHorizontal: Spacing.md }}>
+              <NoteCard note={item} folderName={folderName} onPress={handlePress} onDelete={handleDelete} onPin={handlePin} />
+            </FadeInDown>
+          );
+        }}
         ItemSeparatorComponent={() => <View style={{ height: Spacing.xs }} />}
         ListEmptyComponent={
           !isLoading ? (

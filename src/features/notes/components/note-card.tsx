@@ -10,6 +10,7 @@ interface NoteCardProps {
   onPress: (note: Note) => void;
   onDelete: (id: string) => void;
   onPin: (note: Note) => void;
+  folderName?: string;
 }
 
 function stripMarkdown(text: string): string {
@@ -23,7 +24,7 @@ function stripMarkdown(text: string): string {
     .slice(0, 120);
 }
 
-export function NoteCard({ note, onPress, onDelete, onPin }: NoteCardProps) {
+export function NoteCard({ note, onPress, onDelete, onPin, folderName }: NoteCardProps) {
   const { colors } = useTheme();
   const isWeb = Platform.OS === 'web';
   const preview = stripMarkdown(note.content);
@@ -103,7 +104,35 @@ export function NoteCard({ note, onPress, onDelete, onPin }: NoteCardProps) {
 
       {/* Footer: tags + date */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: Spacing.xs }}>
-        <View style={{ flexDirection: 'row', gap: Spacing.xs, flexWrap: 'wrap' }}>
+        <View style={{ flexDirection: 'row', gap: Spacing.xs, flexWrap: 'wrap', alignItems: 'center' }}>
+          {folderName && (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: colors.surfaceStrong,
+                borderWidth: 1,
+                borderColor: colors.hairline,
+                borderRadius: Radius.sm,
+                paddingHorizontal: 6,
+                paddingVertical: 2,
+                gap: 4,
+              }}
+            >
+              {!isWeb ? (
+                <Image
+                  source="sf:folder"
+                  style={{ width: 12, height: 12, tintColor: colors.muted }}
+                  contentFit="contain"
+                />
+              ) : (
+                <Text style={{ fontSize: 10, marginRight: 1 }}>📁</Text>
+              )}
+              <Text style={{ ...Typography.caption, color: colors.muted, fontWeight: '500' }}>
+                {folderName}
+              </Text>
+            </View>
+          )}
           {note.tags.slice(0, 3).map((tag) => (
             <View
               key={tag}

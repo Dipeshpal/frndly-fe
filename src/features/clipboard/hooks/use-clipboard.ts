@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { clipboardApi } from '@/api/clipboard';
 import { QueryKeys } from '@/utils/query-keys';
 import { getDeviceId } from '@/utils/secure-storage';
@@ -9,6 +9,18 @@ export function useClipboardList(search?: string) {
   return useQuery({
     queryKey: QueryKeys.clipboard(1, search),
     queryFn: () => clipboardApi.list({ page: 1, per_page: 50, search }),
+  });
+}
+
+export function useInfiniteClipboardList(params?: { search?: string; date?: string }) {
+  return useInfiniteQuery({
+    queryKey: ['clipboard', 'list', 'infinite', params],
+    queryFn: ({ pageParam = 1 }) => clipboardApi.list({ ...params, page: pageParam, per_page: 50 }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const currentLoaded = lastPage.page * lastPage.per_page;
+      return currentLoaded < lastPage.total ? lastPage.page + 1 : undefined;
+    },
   });
 }
 

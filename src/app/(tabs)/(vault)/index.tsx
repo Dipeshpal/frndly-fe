@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { View, FlatList, Pressable, Text, TextInput } from 'react-native';
-import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
+import { FadeIn } from '@/components/motion/fade-in';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/use-theme';
@@ -120,9 +120,7 @@ function FolderCard({
 
       {/* Hover peek preview */}
       {showPreview && preview && preview.length > 0 && (
-        <Animated.View
-          entering={FadeIn.duration(150)}
-          style={{
+        <FadeIn style={{
             borderTopWidth: 1,
             borderTopColor: colors.border,
             backgroundColor: colors.canvas,
@@ -141,7 +139,7 @@ function FolderCard({
           {count > (preview.length) && (
             <Text style={{ ...Typography.caption, color: colors.muted, opacity: 0.5 }}>+{count - preview.length} more</Text>
           )}
-        </Animated.View>
+        </FadeIn>
       )}
     </Pressable>
   );
@@ -210,9 +208,7 @@ export default function VaultScreen() {
             <View style={{ gap: Spacing.sm, paddingHorizontal: Spacing.md }}>
               {/* Create folder inline input */}
               {creatingFolder && (
-                <Animated.View
-                  entering={FadeInDown.springify().damping(18)}
-                  style={{
+                <FadeIn style={{
                     backgroundColor: colors.surfaceCard,
                     borderWidth: 1,
                     borderColor: colors.brandBlue,
@@ -242,16 +238,13 @@ export default function VaultScreen() {
                   <Pressable onPress={() => { setCreatingFolder(false); setNewFolderName(''); }} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
                     <MaterialIcons name="close" size={20} color={colors.muted} />
                   </Pressable>
-                </Animated.View>
+                </FadeIn>
               )}
               {foldersLoading && <LoadingState message="Loading folders…" style={{ paddingVertical: Spacing.xl }} />}
             </View>
           }
           renderItem={({ item, index }) => (
-            <Animated.View
-              entering={FadeInDown.delay(index * 60).springify().damping(18)}
-              style={{ flex: 1 }}
-            >
+            <FadeIn index={index} step={60} style={{ flex: 1 }}>
               <FolderCard
                 name={item.name}
                 count={item.count}
@@ -261,7 +254,7 @@ export default function VaultScreen() {
                 onConfirmDelete={() => handleDeleteFolder(item.name)}
                 onCancelDelete={() => setConfirmingDeleteFolder(null)}
               />
-            </Animated.View>
+            </FadeIn>
           )}
           ListEmptyComponent={
             !foldersLoading ? (
@@ -397,12 +390,9 @@ export default function VaultScreen() {
           </View>
         }
         renderItem={({ item, index }) => (
-          <Animated.View
-            entering={FadeInDown.delay(index * 40).springify().damping(18)}
-            style={{ paddingHorizontal: Spacing.md }}
-          >
+          <FadeIn index={index} step={40} style={{ paddingHorizontal: Spacing.md }}>
             <SecretCard secret={item} onDelete={handleDeleteSecret} onEdit={handleEdit} />
-          </Animated.View>
+          </FadeIn>
         )}
         ItemSeparatorComponent={() => <View style={{ height: Spacing.xs }} />}
         ListEmptyComponent={

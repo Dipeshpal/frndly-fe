@@ -1,8 +1,7 @@
-import { createContext, use, useCallback, useRef, useState } from 'react';
+import { createContext, use, useCallback, useRef, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Animated } from 'react-native';
 import { Image } from 'expo-image';
-import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/use-theme';
 import { Radius, Spacing } from '@/theme/spacing';
@@ -28,6 +27,41 @@ const ICONS: Record<ToastVariant, string> = {
   error: 'xmark.circle.fill',
   info: 'info.circle.fill',
 };
+
+function AnimatedToast({ t, accentMap }: { t: ToastItem; accentMap: Record<ToastVariant, string> }) {
+  const { colors } = useTheme();
+  const anim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.spring(anim, { toValue: 1, damping: 16, useNativeDriver: true }).start();
+  }, []);
+
+  const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] });
+
+  return (
+    <Animated.View
+      style={{
+        opacity: anim,
+        transform: [{ translateY }],
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.sm,
+        maxWidth: 420,
+        paddingVertical: Spacing.sm,
+        paddingHorizontal: Spacing.md,
+        borderRadius: Radius.pill,
+        borderCurve: 'continuous',
+        backgroundColor: colors.surfaceStrong,
+        borderWidth: 1,
+        borderColor: colors.hairline,
+        boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+      }}
+    >
+      <Image source={`sf:${ICONS[t.variant]}`} style={{ width: 18, height: 18, tintColor: accentMap[t.variant] }} contentFit="contain" />
+      <Text style={{ ...Typography.titleSm, color: colors.ink }}>{t.message}</Text>
+    </Animated.View>
+  );
+}
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const { colors } = useTheme();
@@ -65,28 +99,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         }}
       >
         {toasts.map((t) => (
-          <Animated.View
-            key={t.id}
-            entering={FadeInDown.springify().damping(16)}
-            exiting={FadeOutDown.duration(200)}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: Spacing.sm,
-              maxWidth: 420,
-              paddingVertical: Spacing.sm,
-              paddingHorizontal: Spacing.md,
-              borderRadius: Radius.pill,
-              borderCurve: 'continuous',
-              backgroundColor: colors.surfaceStrong,
-              borderWidth: 1,
-              borderColor: colors.hairline,
-              boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
-            }}
-          >
-            <Image source={`sf:${ICONS[t.variant]}`} style={{ width: 18, height: 18, tintColor: accentMap[t.variant] }} contentFit="contain" />
-            <Text style={{ ...Typography.titleSm, color: colors.ink }}>{t.message}</Text>
-          </Animated.View>
+          <AnimatedToast key={t.id} t={t} accentMap={accentMap} />
         ))}
       </View>
     </ToastContext>
