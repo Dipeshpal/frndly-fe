@@ -1,4 +1,4 @@
-export const SECRET_CATEGORIES = ['api_key', 'database', 'cloud', 'personal', 'other'] as const;
+export const SECRET_CATEGORIES = ['api_key', 'database', 'cloud', 'personal', 'credentials', 'other'] as const;
 export type SecretCategory = typeof SECRET_CATEGORIES[number];
 
 export const CATEGORY_LABELS: Record<SecretCategory, string> = {
@@ -6,6 +6,7 @@ export const CATEGORY_LABELS: Record<SecretCategory, string> = {
   database: 'Database',
   cloud: 'Cloud',
   personal: 'Personal',
+  credentials: 'Credentials',
   other: 'Other',
 };
 

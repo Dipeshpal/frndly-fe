@@ -198,31 +198,6 @@ export function FolderTree({ selectedFolderId, onSelectFolder }: FolderTreeProps
         </Text>
       </Pressable>
 
-      {/* Unfiled */}
-      <Pressable
-        onPress={() => onSelectFolder(null)}
-        style={({ pressed, hovered }: any) => ({
-          ...rowStyle(selectedFolderId === null),
-          backgroundColor: selectedFolderId === null
-            ? `${colors.brandLavender}30`
-            : hovered ? colors.surfaceCard : 'transparent',
-          opacity: pressed ? 0.8 : 1,
-        })}
-      >
-        {!isWeb ? (
-          <Image
-            source="sf:tray"
-            style={{ width: 15, height: 15, tintColor: selectedFolderId === null ? colors.brandLavender : colors.muted }}
-            contentFit="contain"
-          />
-        ) : (
-          <Text style={{ fontSize: 13 }}>📄</Text>
-        )}
-        <Text style={{ ...Typography.bodySm, color: selectedFolderId === null ? colors.brandLavender : colors.body }}>
-          Unfiled
-        </Text>
-      </Pressable>
-
       {/* Divider */}
       {folders.length > 0 && (
         <View style={{ height: 1, backgroundColor: colors.hairline, marginVertical: Spacing.xs }} />

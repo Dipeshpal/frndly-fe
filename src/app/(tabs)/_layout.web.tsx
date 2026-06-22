@@ -385,11 +385,25 @@ export default function WebLayout() {
         </View>
 
         {/* Content */}
-        <View style={{ flex: 1, alignItems: 'center', paddingVertical: isMobile ? Spacing.sm : Spacing.lg }}>
-          <Animated.View key={activeSegment} entering={FadeIn.duration(220)} style={{ flex: 1, width: '100%', maxWidth: 1100, paddingHorizontal: isMobile ? Spacing.md : Spacing.lg }}>
-            <Slot />
-          </Animated.View>
-        </View>
+        {(() => {
+          const isFullWidth = activeSegment === '(notes)';
+          return (
+            <View style={{ flex: 1, alignItems: isFullWidth ? 'stretch' : 'center', paddingVertical: isMobile ? Spacing.sm : Spacing.lg }}>
+              <Animated.View
+                key={activeSegment}
+                entering={FadeIn.duration(220)}
+                style={{
+                  flex: 1,
+                  width: '100%',
+                  maxWidth: isFullWidth ? undefined : 1100,
+                  paddingHorizontal: isMobile ? Spacing.md : Spacing.lg,
+                }}
+              >
+                <Slot />
+              </Animated.View>
+            </View>
+          );
+        })()}
 
         {/* Bottom Navigation (Mobile Only) */}
         {isMobile && <BottomNav activeSegment={activeSegment} />}

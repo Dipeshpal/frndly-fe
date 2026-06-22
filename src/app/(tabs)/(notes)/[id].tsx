@@ -5,7 +5,7 @@ import { Image } from 'expo-image';
 import Markdown from 'react-native-markdown-display';
 import { useTheme } from '@/hooks/use-theme';
 import { useNote, useUpdateNote, useDeleteNote } from '@/features/notes/hooks/use-notes';
-import { useFolders } from '@/features/notes/hooks/use-folders';
+import { useFolders, useCreateFolder } from '@/features/notes/hooks/use-folders';
 import { LoadingState } from '@/components/feedback/loading-state';
 import { Spacing, Radius } from '@/theme/spacing';
 import { Typography } from '@/theme/typography';
@@ -24,20 +24,28 @@ export default function NoteDetailScreen() {
   const { mutate: updateNote, isPending: isSaving } = useUpdateNote();
   const { mutate: deleteNote } = useDeleteNote();
   const { data: folders = [] } = useFolders();
+  const { mutate: createFolder } = useCreateFolder();
 
   const [mode, setMode] = useState<Mode>('view');
+  const [expandedPanel, setExpandedPanel] = useState<'editor' | 'preview' | null>(null);
   const [tagInput, setTagInput] = useState('');
   const [showFolderPicker, setShowFolderPicker] = useState(false);
+  const [creatingFolder, setCreatingFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState('');
 
   const [localTitle, setLocalTitle] = useState<string | null>(null);
   const [localContent, setLocalContent] = useState<string | null>(null);
   const [localTags, setLocalTags] = useState<string[] | null>(null);
   const [localFolderId, setLocalFolderId] = useState<string | null | undefined>(undefined);
 
-  const title = localTitle ?? note?.title ?? '';
   const content = localContent ?? note?.content ?? '';
+  const hasContentTitle = content.trim().startsWith('#');
+  const extractedTitle = hasContentTitle ? (content.trim().match(/^#+\s*(.*)/)?.[1]?.trim() ?? '') : null;
+  const title = hasContentTitle ? (extractedTitle ?? '') : (localTitle ?? note?.title ?? '');
   const tags = localTags ?? note?.tags ?? [];
   const folderId = localFolderId === undefined ? (note?.folder_id ?? null) : localFolderId;
+  const canEditTitle = (mode === 'edit' || mode === 'split') && !hasContentTitle;
+  const canEdit = mode === 'edit' || mode === 'split';
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -50,6 +58,8 @@ export default function NoteDetailScreen() {
   useEffect(() => {
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
   }, []);
+
+  useEffect(() => { setExpandedPanel(null); }, [mode]);
 
   const nextMode = (): Mode => {
     if (mode === 'view') return 'edit';
@@ -86,7 +96,7 @@ export default function NoteDetailScreen() {
           {/* Edit/Mode toggle */}
           {mode === 'view' ? (
             <Pressable
-              onPress={() => setMode('edit')}
+              onPress={() => setMode(isWeb ? 'split' : 'edit')}
               hitSlop={8}
               style={{
                 paddingHorizontal: Spacing.sm,
@@ -169,7 +179,13 @@ export default function NoteDetailScreen() {
 
   const handleContentChange = (val: string) => {
     setLocalContent(val);
-    scheduleSave({ title, content: val, tags, folder_id: folderId });
+    const isHeader = val.trim().startsWith('#');
+    const ext = isHeader ? (val.trim().match(/^#+\s*(.*)/)?.[1]?.trim() ?? '') : null;
+    const nextTitle = isHeader ? ext : title;
+    if (isHeader && ext !== null) {
+      setLocalTitle(ext);
+    }
+    scheduleSave({ title: nextTitle ?? '', content: val, tags, folder_id: folderId });
   };
 
   const addTag = (raw: string) => {
@@ -236,27 +252,35 @@ export default function NoteDetailScreen() {
           {title}
         </Text>
       ) : (
-        <TextInput
-          value={title}
-          onChangeText={handleTitleChange}
-          placeholder="Note title…"
-          placeholderTextColor={colors.muted}
-          style={{
-            ...Typography.titleLg,
-            color: colors.ink,
-            borderBottomWidth: 1,
-            borderBottomColor: colors.hairline,
-            paddingBottom: Spacing.sm,
-          }}
-          editable={mode === 'edit'}
-        />
+        <View>
+          <TextInput
+            value={title}
+            onChangeText={handleTitleChange}
+            placeholder="Note title…"
+            placeholderTextColor={colors.muted}
+            style={{
+              ...Typography.titleLg,
+              color: colors.ink,
+              borderBottomWidth: 1,
+              borderBottomColor: colors.hairline,
+              paddingBottom: Spacing.sm,
+              opacity: canEditTitle ? 1 : 0.6,
+            }}
+            editable={canEditTitle}
+          />
+          {hasContentTitle && (
+            <Text style={{ ...Typography.caption, color: colors.muted, marginTop: 4 }}>
+              ℹ️ Title automatically set from Markdown header
+            </Text>
+          )}
+        </View>
       )}
 
       {/* Folder badge + picker */}
       <View>
         <Pressable
-          onPress={() => mode === 'edit' && setShowFolderPicker((v) => !v)}
-          disabled={mode !== 'edit'}
+          onPress={() => canEdit && setShowFolderPicker((v) => !v)}
+          disabled={!canEdit}
           style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start' }}
         >
           {!isWeb ? (
@@ -269,9 +293,9 @@ export default function NoteDetailScreen() {
             <Text style={{ fontSize: 12 }}>📁</Text>
           )}
           <Text style={{ ...Typography.caption, color: currentFolder ? colors.brandLavender : colors.muted }}>
-            {currentFolder ? currentFolder.name : 'Unfiled'}
+            {currentFolder ? currentFolder.name : 'No folder'}
           </Text>
-          {mode === 'edit' && (
+          {canEdit && (
             <Text style={{ ...Typography.caption, color: colors.muted }}>▾</Text>
           )}
         </Pressable>
@@ -285,37 +309,83 @@ export default function NoteDetailScreen() {
               borderRadius: Radius.md,
               marginTop: 4,
               zIndex: 10,
-              minWidth: 180,
+              minWidth: 200,
+              overflow: 'hidden',
             }}
           >
-            <Pressable
-              onPress={() => handleFolderChange(null)}
-              style={({ pressed }: any) => ({ padding: Spacing.sm, opacity: pressed ? 0.7 : 1 })}
-            >
-              <Text style={{ ...Typography.bodySm, color: colors.muted }}>— Unfiled</Text>
-            </Pressable>
             {folders.map((f) => (
               <Pressable
                 key={f.id}
-                onPress={() => handleFolderChange(f.id)}
-                style={({ pressed }: any) => ({
+                onPress={() => { handleFolderChange(f.id); setShowFolderPicker(false); }}
+                style={({ pressed, hovered }: any) => ({
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: 6,
                   padding: Spacing.sm,
                   paddingLeft: f.parent_id ? Spacing.lg : Spacing.sm,
-                  backgroundColor: folderId === f.id ? `${colors.brandLavender}22` : 'transparent',
+                  backgroundColor: folderId === f.id
+                    ? `${colors.brandLavender}22`
+                    : hovered ? colors.surfaceSoft : 'transparent',
                   opacity: pressed ? 0.7 : 1,
                 })}
               >
                 {!isWeb ? (
-                  <Image source="sf:folder" style={{ width: 12, height: 12, tintColor: colors.muted }} contentFit="contain" />
+                  <Image source="sf:folder" style={{ width: 12, height: 12, tintColor: folderId === f.id ? colors.brandLavender : colors.muted }} contentFit="contain" />
                 ) : (
                   <Text style={{ fontSize: 11 }}>📁</Text>
                 )}
-                <Text style={{ ...Typography.bodySm, color: colors.ink }}>{f.name}</Text>
+                <Text style={{ ...Typography.bodySm, color: folderId === f.id ? colors.brandLavender : colors.ink }}>{f.name}</Text>
               </Pressable>
             ))}
+
+            {/* Divider */}
+            {folders.length > 0 && <View style={{ height: 1, backgroundColor: colors.hairline }} />}
+
+            {/* Create new folder */}
+            {creatingFolder ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, padding: Spacing.sm }}>
+                <Text style={{ fontSize: 11 }}>📁</Text>
+                <TextInput
+                  value={newFolderName}
+                  onChangeText={setNewFolderName}
+                  placeholder="Folder name…"
+                  placeholderTextColor={colors.muted}
+                  autoFocus
+                  onSubmitEditing={() => {
+                    if (newFolderName.trim()) {
+                      createFolder(
+                        { name: newFolderName.trim(), parent_id: null },
+                        {
+                          onSuccess: (folder: any) => {
+                            handleFolderChange(folder.id);
+                            setShowFolderPicker(false);
+                          },
+                        }
+                      );
+                    }
+                    setCreatingFolder(false);
+                    setNewFolderName('');
+                  }}
+                  onBlur={() => { setCreatingFolder(false); setNewFolderName(''); }}
+                  style={{ ...Typography.bodySm, color: colors.ink, flex: 1, padding: 0 }}
+                />
+              </View>
+            ) : (
+              <Pressable
+                onPress={() => setCreatingFolder(true)}
+                style={({ pressed, hovered }: any) => ({
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: Spacing.sm,
+                  backgroundColor: hovered ? colors.surfaceSoft : 'transparent',
+                  opacity: pressed ? 0.7 : 1,
+                })}
+              >
+                <Text style={{ fontSize: 12, color: colors.muted }}>+</Text>
+                <Text style={{ ...Typography.bodySm, color: colors.muted }}>New folder</Text>
+              </Pressable>
+            )}
           </View>
         )}
       </View>
@@ -325,17 +395,17 @@ export default function NoteDetailScreen() {
         {tags.map((tag) => (
           <Pressable
             key={tag}
-            onPress={() => mode === 'edit' && removeTag(tag)}
-            disabled={mode !== 'edit'}
+            onPress={() => canEdit && removeTag(tag)}
+            disabled={!canEdit}
             style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: `${colors.brandLavender}22`, borderRadius: 9999, paddingHorizontal: 10, paddingVertical: 3 }}
           >
             <Text style={{ ...Typography.caption, color: colors.brandLavender }}>{tag}</Text>
-            {mode === 'edit' && (
+            {canEdit && (
               <Text style={{ ...Typography.caption, color: colors.brandLavender }}>✕</Text>
             )}
           </Pressable>
         ))}
-        {mode === 'edit' && (
+        {canEdit && (
           <TextInput
             value={tagInput}
             onChangeText={setTagInput}
@@ -354,10 +424,15 @@ export default function NoteDetailScreen() {
 
   // SPLIT mode — web only: editor left, preview right
   if (mode === 'split') {
+    const editorHidden = expandedPanel === 'preview';
+    const previewHidden = expandedPanel === 'editor';
     return (
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        style={{ scrollbarWidth: 'none' } as any}
         contentContainerStyle={{ padding: Spacing.md, paddingBottom: Spacing.xxl, gap: Spacing.md }}
       >
         {header}
@@ -365,46 +440,80 @@ export default function NoteDetailScreen() {
           {/* Editor panel */}
           <View
             style={{
-              flex: 1,
-              borderWidth: 1,
-              borderColor: colors.hairline,
+              flex: editorHidden ? 0 : 1,
+              overflow: 'hidden',
+              borderWidth: editorHidden ? 0 : 1,
+              borderColor: expandedPanel === 'editor' ? colors.brandLavender : colors.hairline,
               borderRadius: Radius.md,
-              padding: Spacing.md,
+              padding: editorHidden ? 0 : Spacing.md,
               backgroundColor: colors.surfaceCard,
             }}
           >
-            <Text style={{ ...Typography.caption, color: colors.muted, marginBottom: Spacing.xs }}>MARKDOWN</Text>
-            <TextInput
-              value={content}
-              onChangeText={handleContentChange}
-              placeholder={'Write in markdown…\n\n# Heading\n**bold** _italic_ `code`'}
-              placeholderTextColor={colors.muted}
-              multiline
-              textAlignVertical="top"
-              scrollEnabled={false}
-              style={{ ...Typography.bodyMd, color: colors.ink, minHeight: 460, lineHeight: 24 }}
-              autoCorrect={false}
-              autoCapitalize="sentences"
-            />
+            {!editorHidden && (
+              <>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.xs }}>
+                  <Text style={{ ...Typography.caption, color: colors.muted }}>MARKDOWN</Text>
+                  <Pressable
+                    onPress={() => setExpandedPanel((p) => p === 'editor' ? null : 'editor')}
+                    hitSlop={8}
+                    style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, padding: 2 })}
+                  >
+                    <Text style={{ fontSize: 14, color: expandedPanel === 'editor' ? colors.brandLavender : colors.muted }}>
+                      {expandedPanel === 'editor' ? '⊟' : '⊞'}
+                    </Text>
+                  </Pressable>
+                </View>
+                <TextInput
+                  value={content}
+                  onChangeText={handleContentChange}
+                  placeholder={'Write in markdown…\n\n# Heading\n**bold** _italic_ `code`'}
+                  placeholderTextColor={colors.muted}
+                  multiline
+                  textAlignVertical="top"
+                  scrollEnabled={false}
+                  style={{ ...Typography.bodyMd, color: colors.ink, minHeight: 460, lineHeight: 24 }}
+                  autoCorrect={false}
+                  autoCapitalize="sentences"
+                />
+              </>
+            )}
           </View>
 
-          {/* Divider */}
-          <View style={{ width: 1, backgroundColor: colors.hairline }} />
+          {/* Divider — hidden when one panel is expanded */}
+          {!editorHidden && !previewHidden && (
+            <View style={{ width: 1, backgroundColor: colors.hairline }} />
+          )}
 
           {/* Preview panel */}
           <View
             style={{
-              flex: 1,
-              borderWidth: 1,
-              borderColor: colors.hairline,
+              flex: previewHidden ? 0 : 1,
+              overflow: 'hidden',
+              borderWidth: previewHidden ? 0 : 1,
+              borderColor: expandedPanel === 'preview' ? colors.brandLavender : colors.hairline,
               borderRadius: Radius.md,
-              padding: Spacing.md,
+              padding: previewHidden ? 0 : Spacing.md,
             }}
           >
-            <Text style={{ ...Typography.caption, color: colors.muted, marginBottom: Spacing.xs }}>PREVIEW</Text>
-            <Markdown style={markdownStyles}>
-              {content || '*Nothing to preview yet.*'}
-            </Markdown>
+            {!previewHidden && (
+              <>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.xs }}>
+                  <Text style={{ ...Typography.caption, color: colors.muted }}>PREVIEW</Text>
+                  <Pressable
+                    onPress={() => setExpandedPanel((p) => p === 'preview' ? null : 'preview')}
+                    hitSlop={8}
+                    style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, padding: 2 })}
+                  >
+                    <Text style={{ fontSize: 14, color: expandedPanel === 'preview' ? colors.brandLavender : colors.muted }}>
+                      {expandedPanel === 'preview' ? '⊟' : '⊞'}
+                    </Text>
+                  </Pressable>
+                </View>
+                <Markdown style={markdownStyles}>
+                  {content || '*Nothing to preview yet.*'}
+                </Markdown>
+              </>
+            )}
           </View>
         </View>
       </ScrollView>
@@ -416,6 +525,8 @@ export default function NoteDetailScreen() {
     return (
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
+        showsVerticalScrollIndicator={false}
+        style={{ scrollbarWidth: 'none' } as any}
         contentContainerStyle={{ padding: Spacing.md, paddingBottom: Spacing.xxl, gap: Spacing.md }}
       >
         {header}
@@ -431,6 +542,8 @@ export default function NoteDetailScreen() {
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
       keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+      style={{ scrollbarWidth: 'none' } as any}
       contentContainerStyle={{ padding: Spacing.md, paddingBottom: Spacing.xxl, gap: Spacing.md }}
     >
       {header}

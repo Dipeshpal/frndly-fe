@@ -20,7 +20,7 @@ export default function NotesScreen() {
   const [search, setSearch] = useState('');
   const [activeTag, setActiveTag] = useState<string | undefined>(undefined);
   // null = unfiled, string = folder id, 'all' = all notes
-  const [selectedFolder, setSelectedFolder] = useState<string | null | 'all'>(null);
+  const [selectedFolder, setSelectedFolder] = useState<string | null | 'all'>('all');
   const isWeb = Platform.OS === 'web';
   const { isMobile } = useBreakpoint();
 
