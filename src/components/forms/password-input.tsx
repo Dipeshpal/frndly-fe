@@ -1,4 +1,4 @@
-import { View, Pressable, ViewStyle } from 'react-native';
+import { View, Pressable, ViewStyle, Text } from 'react-native';
 import { Image } from 'expo-image';
 import { useState } from 'react';
 import { FormField } from './form-field';
@@ -29,11 +29,17 @@ export function PasswordInput({ label, error, containerStyle, ...props }: Passwo
         style={{ position: 'absolute', right: 12, bottom: error ? 24 : 10, padding: 4 }}
         accessibilityLabel={visible ? 'Hide password' : 'Show password'}
       >
-        <Image
-          source={`sf:${visible ? 'eye.slash' : 'eye'}`}
-          style={{ width: 20, height: 20, tintColor: colors.muted }}
-          contentFit="contain"
-        />
+        {process.env.EXPO_OS === 'web' ? (
+          <Text style={{ fontSize: 20, color: colors.muted, lineHeight: 20 }}>
+            {visible ? '🙈' : '👁'}
+          </Text>
+        ) : (
+          <Image
+            source={`sf:${visible ? 'eye.slash' : 'eye'}`}
+            style={{ width: 20, height: 20, tintColor: colors.muted }}
+            contentFit="contain"
+          />
+        )}
       </Pressable>
     </View>
   );

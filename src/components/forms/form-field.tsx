@@ -1,6 +1,7 @@
 import { View, Text, TextInput, TextInputProps, ViewStyle, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import { useTheme } from '@/hooks/use-theme';
+import { Platform } from 'react-native';
 import { Spacing } from '@/theme/spacing';
 import { Typography } from '@/theme/typography';
 import { useState } from 'react';
@@ -44,7 +45,13 @@ export function FormField({ label, error, containerStyle, secureTextEntry, ...pr
         />
         {isPassword && (
           <Pressable onPress={() => setRevealed(!revealed)} style={{ padding: Spacing.xs }}>
-            <Image source={`sf:${revealed ? 'eye.slash' : 'eye'}`} style={{ width: 18, height: 18, tintColor: colors.muted }} contentFit="contain" />
+            {process.env.EXPO_OS === 'web' ? (
+              <Text style={{ fontSize: 18, color: colors.muted, lineHeight: 18 }}>
+                {revealed ? '🙈' : '👁'}
+              </Text>
+            ) : (
+              <Image source={`sf:${revealed ? 'eye.slash' : 'eye'}`} style={{ width: 18, height: 18, tintColor: colors.muted }} contentFit="contain" />
+            )}
           </Pressable>
         )}
       </View>
