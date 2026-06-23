@@ -49,10 +49,12 @@ const NAV_LINKS = [
   { label: 'Clipboard', href: '/clipboard' },
   { label: 'Notes', href: '/notes' },
   { label: 'Notifications', href: '/notifications' },
+  { label: 'Extension', href: '/extension' },
 ];
 
 const FOOTER_LINKS = {
   PLATFORM: [
+    { label: 'Chrome Extension', href: '/extension' },
     { label: 'Privacy Policy', href: '/privacy' },
     { label: 'Terms of Service', href: '/terms' },
     { label: 'Security Whitepaper', href: '/security' },
