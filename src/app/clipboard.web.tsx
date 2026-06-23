@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { LandingShell, C, T, s } from '@/components/web/landing-shell';
+import { LandingShell, C, T, s, useIsMobile, useSection } from '@/components/web/landing-shell';
 
 const FEATURES = [
   { icon: '⚡', title: 'Instant Push', desc: 'Copy on one device, paste on another in under a second. No manual steps, no cloud delays.' },
@@ -11,78 +11,92 @@ const FEATURES = [
 ];
 
 const MOCK_ITEMS = [
-  { type: 'code', content: 'npm install @frndly/sdk --save', time: '2s ago', device: 'MacBook Pro' },
-  { type: 'link', content: 'https://docs.frndly.app/clipboard', time: '4m ago', device: 'iPhone 16' },
-  { type: 'text', content: 'Meeting notes: sync at 3pm EST on Friday...', time: '12m ago', device: 'Windows PC' },
+  { type: 'code', content: 'npm install @frndly/sdk --save', time: '2s ago' },
+  { type: 'link', content: 'https://docs.frndly.app/clipboard', time: '4m ago' },
+  { type: 'text', content: 'Meeting notes: sync at 3pm EST on Friday...', time: '12m ago' },
+];
+
+const CLIP_STATS = [
+  { value: '<1s', label: 'SYNC LATENCY', color: C.blue },
+  { value: '30d', label: 'HISTORY RETENTION', color: C.violet },
+  { value: '∞', label: 'CONNECTED DEVICES', color: C.emerald },
 ];
 
 export default function ClipboardPage() {
   const router = useRouter();
+  const isMobile = useIsMobile();
+  const sec = useSection();
   const goSignup = () => router.push('/(auth)/signup');
 
   return (
     <LandingShell>
       {/* Hero */}
-      <View style={[s.section, { paddingVertical: 96, flexDirection: 'row', gap: 60, alignItems: 'center' }]}>
-        <View style={{ flex: 1 }}>
+      <View style={[sec, {
+        paddingVertical: isMobile ? 48 : 96,
+        flexDirection: isMobile ? 'column' : 'row',
+        gap: isMobile ? 32 : 60,
+        alignItems: isMobile ? 'flex-start' : 'center',
+      }]}>
+        <View style={{ flex: isMobile ? undefined : 1 }}>
           <View style={[s.chip, { backgroundColor: C.blue + '18', borderWidth: 1, borderColor: C.blue + '40', marginBottom: 24 }]}>
             <Text style={{ fontSize: 14 }}>📋</Text>
             <Text style={[T.caps, { color: C.blue }]}>INSTANT CROSS-DEVICE SYNC</Text>
           </View>
-          <Text style={[T.display, { color: C.text }]}>
+          <Text style={[T.display, { color: C.text, fontSize: isMobile ? 32 : 52, lineHeight: isMobile ? 40 : 60 }]}>
             {'Copy Once,\nPaste '}
             <Text style={{ color: C.blue }}>Anywhere.</Text>
           </Text>
-          <Text style={[T.body, { color: C.textMuted, marginTop: 20, maxWidth: 460 }]}>
-            Stop emailing yourself links and screenshots. Frndly Clipboard pushes anything you copy to every device you own,instantly and securely.
+          <Text style={[T.body, { color: C.textMuted, marginTop: 20, maxWidth: isMobile ? undefined : 460 }]}>
+            Stop emailing yourself links and screenshots. Frndly Clipboard pushes anything you copy to every device you own, instantly and securely.
           </Text>
           <View style={{ flexDirection: 'row', gap: 12, marginTop: 36 }}>
-            <Pressable onPress={goSignup} style={s.btnPrimaryLg}>
+            <Pressable onPress={goSignup} style={[s.btnPrimaryLg, isMobile && { flex: 1, alignItems: 'center' }]}>
               <Text style={[T.body, { color: '#fff', fontWeight: '600' }]}>Try Clipboard Free</Text>
             </Pressable>
           </View>
         </View>
 
-        {/* Mock clipboard UI */}
-        <View style={styles.mockPanel}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <Text style={[T.caps, { color: C.textDim }]}>CLIPBOARD HISTORY</Text>
-            <View style={styles.liveBadge}>
-              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.emerald }} />
-              <Text style={[T.caps, { color: C.emerald }]}>LIVE</Text>
-            </View>
-          </View>
-          {MOCK_ITEMS.map((item, i) => (
-            <View key={i} style={styles.mockItem}>
-              <View style={[styles.typeTag, { backgroundColor: item.type === 'code' ? C.violet + '22' : item.type === 'link' ? C.emerald + '22' : C.blue + '22' }]}>
-                <Text style={[T.caps, { color: item.type === 'code' ? C.violet : item.type === 'link' ? C.emerald : C.blue }]}>{item.type.toUpperCase()}</Text>
+        {!isMobile && (
+          <View style={styles.mockPanel}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <Text style={[T.caps, { color: C.textDim }]}>CLIPBOARD HISTORY</Text>
+              <View style={styles.liveBadge}>
+                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.emerald }} />
+                <Text style={[T.caps, { color: C.emerald }]}>LIVE</Text>
               </View>
-              <Text style={[T.sm, { color: C.text, flex: 1 }]} numberOfLines={1}>{item.content}</Text>
-              <Text style={[T.caps, { color: C.textDim }]}>{item.time}</Text>
             </View>
-          ))}
-          <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderColor: C.border, flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Text style={[T.caps, { color: C.textDim }]}>3 DEVICES CONNECTED</Text>
-            <View style={{ flexDirection: 'row', gap: 4 }}>
-              {[C.emerald, C.emerald, C.emerald].map((c, i) => (
-                <View key={i} style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: c }} />
-              ))}
+            {MOCK_ITEMS.map((item, i) => (
+              <View key={i} style={styles.mockItem}>
+                <View style={[styles.typeTag, { backgroundColor: item.type === 'code' ? C.violet + '22' : item.type === 'link' ? C.emerald + '22' : C.blue + '22' }]}>
+                  <Text style={[T.caps, { color: item.type === 'code' ? C.violet : item.type === 'link' ? C.emerald : C.blue }]}>{item.type.toUpperCase()}</Text>
+                </View>
+                <Text style={[T.sm, { color: C.text, flex: 1 }]} numberOfLines={1}>{item.content}</Text>
+                <Text style={[T.caps, { color: C.textDim }]}>{item.time}</Text>
+              </View>
+            ))}
+            <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderColor: C.border, flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Text style={[T.caps, { color: C.textDim }]}>3 DEVICES CONNECTED</Text>
+              <View style={{ flexDirection: 'row', gap: 4 }}>
+                {[C.emerald, C.emerald, C.emerald].map((c, i) => (
+                  <View key={i} style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: c }} />
+                ))}
+              </View>
             </View>
           </View>
-        </View>
+        )}
       </View>
 
       {/* Stats */}
       <View style={{ borderTopWidth: 1, borderBottomWidth: 1, borderColor: C.border }}>
-        <View style={[s.section, { paddingVertical: 0 }]}>
-          <View style={{ flexDirection: 'row' }}>
-            {[
-              { value: '<1s', label: 'SYNC LATENCY', color: C.blue },
-              { value: '30d', label: 'HISTORY RETENTION', color: C.violet },
-              { value: '∞', label: 'CONNECTED DEVICES', color: C.emerald },
-            ].map((st, i, arr) => (
-              <View key={i} style={[styles.statItem, i < arr.length - 1 && { borderRightWidth: 1, borderColor: C.border }]}>
-                <Text style={[T.display, { color: st.color, fontSize: 36 }]}>{st.value}</Text>
+        <View style={[sec, { paddingVertical: 0 }]}>
+          <View style={{ flexDirection: isMobile ? 'column' : 'row' }}>
+            {CLIP_STATS.map((st, i, arr) => (
+              <View key={i} style={[
+                styles.statItem,
+                !isMobile && i < arr.length - 1 && { borderRightWidth: 1, borderColor: C.border },
+                isMobile && i < arr.length - 1 && { borderBottomWidth: 1, borderColor: C.border },
+              ]}>
+                <Text style={[T.display, { color: st.color, fontSize: isMobile ? 28 : 36 }]}>{st.value}</Text>
                 <Text style={[T.caps, { color: C.textDim, marginTop: 8 }]}>{st.label}</Text>
               </View>
             ))}
@@ -91,9 +105,9 @@ export default function ClipboardPage() {
       </View>
 
       {/* Features */}
-      <View style={s.section}>
+      <View style={sec}>
         <Text style={[T.h2, { color: C.text }]}>Built for How You Actually Work</Text>
-        <Text style={[T.body, { color: C.textMuted, marginTop: 12, maxWidth: 520 }]}>
+        <Text style={[T.body, { color: C.textMuted, marginTop: 12, maxWidth: isMobile ? undefined : 520 }]}>
           Developers, writers, and power users all copy things constantly. Frndly Clipboard makes that flow frictionless across every device.
         </Text>
         <View style={s.featureGrid}>
@@ -110,9 +124,9 @@ export default function ClipboardPage() {
       </View>
 
       {/* CTA */}
-      <View style={s.section}>
-        <View style={[s.ctaBanner, { backgroundColor: C.blue + 'cc', borderColor: C.blue + '60' }]}>
-          <Text style={[T.h1, { color: '#fff', textAlign: 'center' }]}>Stop Emailing Yourself.</Text>
+      <View style={sec}>
+        <View style={[s.ctaBanner, { backgroundColor: C.blue + 'cc', borderColor: C.blue + '60', padding: isMobile ? 32 : 60 }]}>
+          <Text style={[T.h1, { color: '#fff', textAlign: 'center', fontSize: isMobile ? 28 : 40 }]}>Stop Emailing Yourself.</Text>
           <Text style={[T.body, { color: 'rgba(255,255,255,0.75)', textAlign: 'center', marginTop: 12, maxWidth: 400 }]}>
             Connect your devices in under 60 seconds. Free for up to 5 devices with unlimited clipboard history.
           </Text>
@@ -162,7 +176,7 @@ const styles = StyleSheet.create({
   statItem: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 48,
-    paddingHorizontal: 24,
+    paddingVertical: 40,
+    paddingHorizontal: 16,
   },
 });

@@ -1,9 +1,9 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { LandingShell, C, T, s } from '@/components/web/landing-shell';
+import { LandingShell, C, T, s, useIsMobile, useSection } from '@/components/web/landing-shell';
 
 const FEATURES = [
-  { icon: '🔔', title: 'Smart Alerts', desc: 'Set threshold-based triggers on any data point,device disconnect, clipboard surge, vault access from new location.' },
+  { icon: '🔔', title: 'Smart Alerts', desc: 'Set threshold-based triggers on any data point, device disconnect, clipboard surge, vault access from new location.' },
   { icon: '📱', title: 'Push to Any Device', desc: 'Native push notifications on iOS and Android. Desktop toasts on Windows and macOS. Zero setup required.' },
   { icon: '🔕', title: 'Focus Modes', desc: 'Schedule quiet hours, snooze by category, or mute entire notification channels without losing history.' },
   { icon: '📊', title: 'Alert Analytics', desc: 'See which alerts fire most, response time trends, and false-positive rates. Tune your rules over time.' },
@@ -12,73 +12,87 @@ const FEATURES = [
 ];
 
 const MOCK_ALERTS = [
-  { icon: '🔐', title: 'New vault access', desc: 'Logged in from London, UK', time: '30s ago', level: 'warn', color: C.violet },
-  { icon: '📋', title: 'Clipboard synced', desc: '3 items pushed to iPhone 16', time: '2m ago', level: 'info', color: C.blue },
-  { icon: '✅', title: 'Device connected', desc: 'Windows PC joined your network', time: '5m ago', level: 'ok', color: C.emerald },
-  { icon: '⚠️', title: 'Breach detected', desc: 'email@example.com found in leak', time: '1h ago', level: 'error', color: '#ffb4ab' },
+  { icon: '🔐', title: 'New vault access', desc: 'Logged in from London, UK', time: '30s ago', color: C.violet },
+  { icon: '📋', title: 'Clipboard synced', desc: '3 items pushed to iPhone 16', time: '2m ago', color: C.blue },
+  { icon: '✅', title: 'Device connected', desc: 'Windows PC joined your network', time: '5m ago', color: C.emerald },
+  { icon: '⚠️', title: 'Breach detected', desc: 'email@example.com found in leak', time: '1h ago', color: '#ffb4ab' },
+];
+
+const NOTIF_STATS = [
+  { value: '<2s', label: 'ALERT DELIVERY TIME', color: '#ffb4ab' },
+  { value: '90d', label: 'ALERT HISTORY', color: C.blue },
+  { value: '∞', label: 'ALERT RULES', color: C.emerald },
 ];
 
 export default function NotificationsPage() {
   const router = useRouter();
+  const isMobile = useIsMobile();
+  const sec = useSection();
   const goSignup = () => router.push('/(auth)/signup');
 
   return (
     <LandingShell>
       {/* Hero */}
-      <View style={[s.section, { paddingVertical: 96, flexDirection: 'row', gap: 60, alignItems: 'center' }]}>
-        <View style={{ flex: 1 }}>
-          <View style={[s.chip, { backgroundColor: '#ffb4ab' + '22', borderWidth: 1, borderColor: '#ffb4ab' + '40', marginBottom: 24 }]}>
+      <View style={[sec, {
+        paddingVertical: isMobile ? 48 : 96,
+        flexDirection: isMobile ? 'column' : 'row',
+        gap: isMobile ? 32 : 60,
+        alignItems: isMobile ? 'flex-start' : 'center',
+      }]}>
+        <View style={{ flex: isMobile ? undefined : 1 }}>
+          <View style={[s.chip, { backgroundColor: '#ffb4ab22', borderWidth: 1, borderColor: '#ffb4ab40', marginBottom: 24 }]}>
             <Text style={{ fontSize: 14 }}>🔔</Text>
             <Text style={[T.caps, { color: '#ffb4ab' }]}>REAL-TIME ALERTS</Text>
           </View>
-          <Text style={[T.display, { color: C.text }]}>
+          <Text style={[T.display, { color: C.text, fontSize: isMobile ? 32 : 52, lineHeight: isMobile ? 40 : 60 }]}>
             {'Stay '}
             <Text style={{ color: '#ffb4ab' }}>Ahead</Text>
             {'\nof Everything.'}
           </Text>
-          <Text style={[T.body, { color: C.textMuted, marginTop: 20, maxWidth: 460 }]}>
-            Know the moment something happens across your entire digital ecosystem,breach alerts, device events, vault access, and clipboard activity.
+          <Text style={[T.body, { color: C.textMuted, marginTop: 20, maxWidth: isMobile ? undefined : 460 }]}>
+            Know the moment something happens across your entire digital ecosystem, breach alerts, device events, vault access, and clipboard activity.
           </Text>
           <View style={{ flexDirection: 'row', gap: 12, marginTop: 36 }}>
-            <Pressable onPress={goSignup} style={[s.btnPrimaryLg, { backgroundColor: '#93000a' }]}>
+            <Pressable onPress={goSignup} style={[s.btnPrimaryLg, { backgroundColor: '#93000a' }, isMobile && { flex: 1, alignItems: 'center' }]}>
               <Text style={[T.body, { color: '#ffb4ab', fontWeight: '600' }]}>Enable Alerts Free</Text>
             </Pressable>
           </View>
         </View>
 
-        {/* Mock alert feed */}
-        <View style={styles.mockFeed}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <Text style={[T.caps, { color: C.textDim }]}>ALERT FEED</Text>
-            <View style={styles.liveBadge}>
-              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#ffb4ab' }} />
-              <Text style={[T.caps, { color: '#ffb4ab' }]}>LIVE</Text>
-            </View>
-          </View>
-          {MOCK_ALERTS.map((alert, i) => (
-            <View key={i} style={[styles.alertItem, { borderLeftWidth: 3, borderLeftColor: alert.color }]}>
-              <Text style={{ fontSize: 18 }}>{alert.icon}</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={[T.sm, { color: C.text, fontWeight: '600' }]}>{alert.title}</Text>
-                <Text style={[T.caps, { color: C.textDim, marginTop: 2 }]}>{alert.desc}</Text>
+        {!isMobile && (
+          <View style={styles.mockFeed}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <Text style={[T.caps, { color: C.textDim }]}>ALERT FEED</Text>
+              <View style={styles.liveBadge}>
+                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#ffb4ab' }} />
+                <Text style={[T.caps, { color: '#ffb4ab' }]}>LIVE</Text>
               </View>
-              <Text style={[T.caps, { color: C.textDim }]}>{alert.time}</Text>
             </View>
-          ))}
-        </View>
+            {MOCK_ALERTS.map((alert, i) => (
+              <View key={i} style={[styles.alertItem, { borderLeftWidth: 3, borderLeftColor: alert.color }]}>
+                <Text style={{ fontSize: 18 }}>{alert.icon}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={[T.sm, { color: C.text, fontWeight: '600' }]}>{alert.title}</Text>
+                  <Text style={[T.caps, { color: C.textDim, marginTop: 2 }]}>{alert.desc}</Text>
+                </View>
+                <Text style={[T.caps, { color: C.textDim }]}>{alert.time}</Text>
+              </View>
+            ))}
+          </View>
+        )}
       </View>
 
       {/* Stats */}
       <View style={{ borderTopWidth: 1, borderBottomWidth: 1, borderColor: C.border }}>
-        <View style={[s.section, { paddingVertical: 0 }]}>
-          <View style={{ flexDirection: 'row' }}>
-            {[
-              { value: '<2s', label: 'ALERT DELIVERY TIME', color: '#ffb4ab' },
-              { value: '90d', label: 'ALERT HISTORY', color: C.blue },
-              { value: '∞', label: 'ALERT RULES', color: C.emerald },
-            ].map((st, i, arr) => (
-              <View key={i} style={[styles.statItem, i < arr.length - 1 && { borderRightWidth: 1, borderColor: C.border }]}>
-                <Text style={[T.display, { color: st.color, fontSize: 36 }]}>{st.value}</Text>
+        <View style={[sec, { paddingVertical: 0 }]}>
+          <View style={{ flexDirection: isMobile ? 'column' : 'row' }}>
+            {NOTIF_STATS.map((st, i, arr) => (
+              <View key={i} style={[
+                styles.statItem,
+                !isMobile && i < arr.length - 1 && { borderRightWidth: 1, borderColor: C.border },
+                isMobile && i < arr.length - 1 && { borderBottomWidth: 1, borderColor: C.border },
+              ]}>
+                <Text style={[T.display, { color: st.color, fontSize: isMobile ? 28 : 36 }]}>{st.value}</Text>
                 <Text style={[T.caps, { color: C.textDim, marginTop: 8 }]}>{st.label}</Text>
               </View>
             ))}
@@ -87,15 +101,15 @@ export default function NotificationsPage() {
       </View>
 
       {/* Features */}
-      <View style={s.section}>
+      <View style={sec}>
         <Text style={[T.h2, { color: C.text }]}>Never Miss What Matters</Text>
-        <Text style={[T.body, { color: C.textMuted, marginTop: 12, maxWidth: 520 }]}>
+        <Text style={[T.body, { color: C.textMuted, marginTop: 12, maxWidth: isMobile ? undefined : 520 }]}>
           From critical security events to routine sync confirmations, Frndly Notifications keeps you informed without drowning you in noise.
         </Text>
         <View style={s.featureGrid}>
           {FEATURES.map((f) => (
             <View key={f.title} style={s.featureCard}>
-              <View style={[s.featureIconWrap, { backgroundColor: '#ffb4ab' + '18' }]}>
+              <View style={[s.featureIconWrap, { backgroundColor: '#ffb4ab18' }]}>
                 <Text style={{ fontSize: 24 }}>{f.icon}</Text>
               </View>
               <Text style={[T.h3, { color: C.text, marginTop: 16 }]}>{f.title}</Text>
@@ -107,9 +121,9 @@ export default function NotificationsPage() {
 
       {/* Alert types */}
       <View style={{ backgroundColor: C.surface, borderTopWidth: 1, borderBottomWidth: 1, borderColor: C.border }}>
-        <View style={s.section}>
+        <View style={sec}>
           <Text style={[T.h2, { color: C.text, textAlign: 'center' }]}>Every Alert Type, Covered</Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginTop: 40, justifyContent: 'center' }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 40, justifyContent: 'center' }}>
             {[
               { label: 'Security Breach', color: '#ffb4ab' },
               { label: 'Device Connect', color: C.emerald },
@@ -129,9 +143,9 @@ export default function NotificationsPage() {
       </View>
 
       {/* CTA */}
-      <View style={s.section}>
-        <View style={[s.ctaBanner, { backgroundColor: '#93000a' + 'dd', borderColor: '#ffb4ab' + '30' }]}>
-          <Text style={[T.h1, { color: '#fff', textAlign: 'center' }]}>Zero Notifications Missed.</Text>
+      <View style={sec}>
+        <View style={[s.ctaBanner, { backgroundColor: '#93000add', borderColor: '#ffb4ab30', padding: isMobile ? 32 : 60 }]}>
+          <Text style={[T.h1, { color: '#fff', textAlign: 'center', fontSize: isMobile ? 28 : 40 }]}>Zero Notifications Missed.</Text>
           <Text style={[T.body, { color: 'rgba(255,255,255,0.75)', textAlign: 'center', marginTop: 12, maxWidth: 420 }]}>
             Set up intelligent alerts across your entire ecosystem in minutes. Free tier includes unlimited alert rules.
           </Text>
@@ -157,9 +171,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#ffb4ab' + '18',
+    backgroundColor: '#ffb4ab18',
     borderWidth: 1,
-    borderColor: '#ffb4ab' + '40',
+    borderColor: '#ffb4ab40',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 999,
@@ -182,7 +196,7 @@ const styles = StyleSheet.create({
   statItem: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 48,
-    paddingHorizontal: 24,
+    paddingVertical: 40,
+    paddingHorizontal: 16,
   },
 });
