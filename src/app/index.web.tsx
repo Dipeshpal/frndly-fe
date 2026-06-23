@@ -1,37 +1,72 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Image, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAuthStore } from '@/store/auth-store';
 import { LandingShell, C, T, s, useIsMobile, useSection } from '@/components/web/landing-shell';
 
 function MockUI() {
-  const rows = [
-    { icon: '🔑', label: 'API Key, Production', color: C.emerald },
-    { icon: '📄', label: 'Project Notes, Design', color: C.blue },
-    { icon: '📋', label: 'Clipboard sync • 2m ago', color: C.violet },
-  ];
+  const floatAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnim, { toValue: -14, duration: 2200, useNativeDriver: true }),
+        Animated.timing(floatAnim, { toValue: 0, duration: 2200, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
   return (
-    <View style={styles.mockCard}>
-      <View style={{ flexDirection: 'row', gap: 6, marginBottom: 16 }}>
-        {['#ff5f57', '#febc2e', '#28c840'].map((c) => (
-          <View key={c} style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: c }} />
-        ))}
+    <Animated.View style={{ transform: [{ translateY: floatAnim }] }}>
+      <View style={styles.phoneGlow} />
+      <Image
+        source={require('../../assets/images/Mobile Screen.png')}
+        style={styles.mockImage}
+        resizeMode="contain"
+      />
+    </Animated.View>
+  );
+}
+
+function HeroContent({ goSignup, isMobile }: { goSignup: () => void; isMobile: boolean }) {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 700, useNativeDriver: true }),
+    ]).start();
+  }, []);
+
+  return (
+    <Animated.View style={[
+      { flex: isMobile ? undefined : 1 },
+      { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+    ]}>
+      <View style={[s.chip, { backgroundColor: C.emerald + '18', borderWidth: 1, borderColor: C.emerald + '40' }]}>
+        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.emerald }} />
+        <Text style={[T.caps, { color: C.emerald }]}>END-TO-END ENCRYPTED</Text>
       </View>
-      {rows.map((r, i) => (
-        <View key={i} style={styles.mockRow}>
-          <View style={[styles.mockIcon, { backgroundColor: r.color + '22' }]}>
-            <Text style={{ fontSize: 14 }}>{r.icon}</Text>
-          </View>
-          <View style={{ flex: 1, gap: 4 }}>
-            <View style={{ height: 8, borderRadius: 4, backgroundColor: C.surfaceBright, width: '70%' }} />
-            <Text style={[T.caps, { color: C.textDim }]}>{r.label}</Text>
-          </View>
-          <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: r.color + '33', alignItems: 'center', justifyContent: 'center' }}>
-            <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: r.color }} />
-          </View>
-        </View>
-      ))}
-    </View>
+      <Text style={[T.display, {
+        color: C.text,
+        marginTop: 20,
+        fontSize: isMobile ? 32 : 52,
+        lineHeight: isMobile ? 40 : 60,
+      }]}>
+        {'Your Entire Digital\n'}
+        <Text style={{ color: C.blue }}>Ecosystem</Text>
+        {', Unified\nand Secure.'}
+      </Text>
+      <Text style={[T.body, { color: C.textMuted, marginTop: 16, maxWidth: isMobile ? undefined : 420 }]}>
+        Vault your secrets, sync your notes, and bridge your devices with military-grade encryption. The ultimate digital fortress built for power users.
+      </Text>
+      <View style={{ flexDirection: 'row', gap: 12, marginTop: 32 }}>
+        <Pressable onPress={goSignup} style={[s.btnPrimaryLg, isMobile && { flex: 1, alignItems: 'center' }]}>
+          <Text style={[T.body, { color: '#fff', fontWeight: '600' }]}>Get Started for Free</Text>
+        </Pressable>
+      </View>
+    </Animated.View>
   );
 }
 
@@ -66,37 +101,21 @@ export default function LandingPage() {
   return (
     <LandingShell>
       {/* Hero */}
-      <View style={[styles.hero, {
-        flexDirection: isMobile ? 'column' : 'row',
-        paddingHorizontal: isMobile ? 20 : 40,
-        paddingVertical: isMobile ? 48 : 80,
-        gap: isMobile ? 32 : 60,
-      }]}>
-        <View style={{ flex: isMobile ? undefined : 1 }}>
-          <View style={[s.chip, { backgroundColor: C.emerald + '18', borderWidth: 1, borderColor: C.emerald + '40' }]}>
-            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.emerald }} />
-            <Text style={[T.caps, { color: C.emerald }]}>END-TO-END ENCRYPTED</Text>
-          </View>
-          <Text style={[T.display, {
-            color: C.text,
-            marginTop: 20,
-            fontSize: isMobile ? 32 : 52,
-            lineHeight: isMobile ? 40 : 60,
-          }]}>
-            {'Your Entire Digital\n'}
-            <Text style={{ color: C.blue }}>Ecosystem</Text>
-            {', Unified\nand Secure.'}
-          </Text>
-          <Text style={[T.body, { color: C.textMuted, marginTop: 16, maxWidth: isMobile ? undefined : 420 }]}>
-            Vault your secrets, sync your notes, and bridge your devices with military-grade encryption. The ultimate digital fortress built for power users.
-          </Text>
-          <View style={{ flexDirection: 'row', gap: 12, marginTop: 32 }}>
-            <Pressable onPress={goSignup} style={[s.btnPrimaryLg, isMobile && { flex: 1, alignItems: 'center' }]}>
-              <Text style={[T.body, { color: '#fff', fontWeight: '600' }]}>Get Started for Free</Text>
-            </Pressable>
-          </View>
+      <View style={styles.heroWrapper}>
+        {/* decorative orbs */}
+        <View style={[styles.orb, { top: -80, right: '10%', width: 400, height: 400, backgroundColor: C.blue + '14' }]} />
+        <View style={[styles.orb, { top: 120, left: '-5%', width: 280, height: 280, backgroundColor: C.violet + '10' }]} />
+        <View style={[styles.orb, { bottom: -40, right: '30%', width: 200, height: 200, backgroundColor: C.emerald + '0c' }]} />
+
+        <View style={[styles.hero, {
+          flexDirection: isMobile ? 'column' : 'row',
+          paddingHorizontal: isMobile ? 20 : 40,
+          paddingVertical: isMobile ? 48 : 80,
+          gap: isMobile ? 32 : 60,
+        }]}>
+          <HeroContent goSignup={goSignup} isMobile={isMobile} />
+          {!isMobile && <MockUI />}
         </View>
-        {!isMobile && <MockUI />}
       </View>
 
       {/* Features */}
@@ -119,7 +138,7 @@ export default function LandingPage() {
       </View>
 
       {/* Stats */}
-      <View style={[sec, { borderTopWidth: 1, borderBottomWidth: 1, borderColor: C.border, paddingVertical: isMobile ? 0 : 0 }]}>
+      <View style={[sec, { borderTopWidth: 1, borderBottomWidth: 1, borderColor: C.border }]}>
         <View style={{ flexDirection: isMobile ? 'column' : 'row' }}>
           {STATS.map((st, i) => (
             <View key={i} style={[
@@ -185,35 +204,33 @@ export default function LandingPage() {
 }
 
 const styles = StyleSheet.create({
+  heroWrapper: {
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  orb: {
+    position: 'absolute',
+    borderRadius: 999,
+  },
   hero: {
     alignItems: 'center',
     maxWidth: 1280,
     alignSelf: 'center',
     width: '100%',
   },
-  mockCard: {
-    width: 340,
-    backgroundColor: C.surface,
-    borderWidth: 1,
-    borderColor: C.border,
-    borderRadius: 16,
-    padding: 24,
+  mockImage: {
+    width: 300,
+    height: 580,
   },
-  mockRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: C.surfaceHigh,
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 8,
-  },
-  mockIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+  phoneGlow: {
+    position: 'absolute',
+    width: 300,
+    height: 300,
+    borderRadius: 999,
+    backgroundColor: C.blue + '20',
+    alignSelf: 'center',
+    top: '50%',
+    marginTop: -150,
   },
   statItem: {
     flex: 1,
